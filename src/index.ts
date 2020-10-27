@@ -1,6 +1,7 @@
 import {
-  computed, effect, reactive, readonly, Ref, ref, shallowReactive, UnwrapRef
+  computed, effect, reactive, readonly, Ref, ref, UnwrapRef
 } from '@vue/reactivity';
+import { usePrinter, ImageLine, Image, Viewport } from './printer'
 
 interface BoardString {
   str: Ref<string>;
@@ -35,7 +36,7 @@ function useBoard() {
 
   const stringsList = computed(() => [...strings.values()]);
 
-  const screen = computed<string[]>(() => {
+  const imageLines = computed<ImageLine[]>(() => {
     // Создаю пустые массивы
     const rows = Array.from(new Array(size.rows), () => (
       Array.from(new Array(size.cols), () => ' ')
@@ -51,7 +52,7 @@ function useBoard() {
     });
 
     // Соединяю
-    return rows.map((row) => row.join(''));
+    return rows;
   });
 
   function addString(s: BoardString): number {
@@ -67,62 +68,56 @@ function useBoard() {
     size,
     addString,
     removeString,
-    screen
-  };
-}
-
-function usePrinter() {
-  const out = process.stdout;
-  const rows = ref<number>(out.rows);
-  const columns = ref<number>(out.columns - 1);
-
-  // Этого не будет на Windows
-  out.on('resize', () => {
-    rows.value = out.rows;
-    columns.value = out.columns - 1;
-  });
-
-  function print(data: string[]): void {
-    out.cursorTo(0, 0)
-    out.write(`${data.join('\n')}`);
-    // data.forEach((r) => {
-    //   out.write(`${r}\n`);
-    // });
-  }
-
-  return {
-    rows: readonly(rows),
-    columns: readonly(columns),
-    print
+    imageLines
   };
 }
 
 function useWordsOnScreen() {
   const PRESET = [
-    'Who are you?..',
-    'Where am I?!...',
+    'Who are you?',
+    'Where am I?!',
+    'Who am I?..',
     'Oh',
+    'O-o-o-o-oh...',
     'Chaos',
+    'cHaOs',
+    'ha-ha-ha-haaaa...',
     'Pathetic',
-    'Horror'
+    'Horror',
+    'Uff',
+    'Pain',
+    'Suffering',
   ];
 
-  const { rows, columns: cols, print } = usePrinter();
+  const viewport: Viewport = {
+    rows: 10,
+    cols: 30
+  };
+
   const board = useBoard();
+  const image = computed<Image>(() => ({
+    width: viewport.cols,
+    height: viewport.rows,
+    x: 15,
+    y: 5,
+    lines: board.imageLines.value
+  }))
+  usePrinter({ image });
 
-  board.size.rows = rows.value;
-  board.size.cols = cols.value;
+  board.size.rows = viewport.rows;
+  board.size.cols = viewport.cols;
+  // setImage()
 
-  effect(() => {
-    print(board.screen.value);
-  });
+  // effect(() => {
+  //   print(board.screen.value);
+  // });
 
   function pushString() {
     // Выбираю рандомную строчку
     const phrase = PRESET[~~(Math.random() * PRESET.length)];
     // Выбираю позицию
-    const row = ~~(Math.random() * rows.value);
-    const col = ~~(Math.random() * (cols.value - phrase.length));
+    const row = ~~(Math.random() * viewport.rows);
+    const col = ~~(Math.random() * (viewport.cols - phrase.length));
     // Создаю умную строку
     const boardString = useString({
       str: phrase,
