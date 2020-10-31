@@ -4,19 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node -T ./src"
+    "start": "ts-node -T ./src",
+    "ts-check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^14.14.2",
+    "@types/random-words": "^1.1.0",
     "@typescript-eslint/eslint-plugin": "^4.6.0",
     "@typescript-eslint/parser": "^4.6.0",
     "eslint": "^7.12.1",
-    "eslint-config-alloy": "^3.8.2",
-    "ts-node": "^9.0.0",
-    "typescript": "^4.0.3"
+    "eslint-config-alloy": "^3.8.2"
   },
   "eslintConfig": {
     "env": {
@@ -28,6 +28,9 @@
     ]
   },
   "dependencies": {
-    "@vue/reactivity": "^3.0.2"
+    "@vue/reactivity": "^3.0.2",
+    "random-words": "^1.1.1",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.5"
   }
 }

@@ -1,59 +1,72 @@
-import { computed, effect, reactive, readonly, Ref } from "@vue/reactivity";
+import { computed, effect, reactive, readonly, Ref } from '@vue/reactivity';
 
 const BACKFACE = ' ';
 
-interface BoundingRect {
+export interface Vector {
   x: number;
   y: number;
-  width: number;
-  height: number;
 }
 
-export type ImageLine = (string | null)[]
+// export interface Viewport {
+//   rows: number;
+//   cols: number;
+// }
+
+// export interface PositionedViewport extends Viewport {
+//   col: number;
+//   row: number;
+// }
+
+export interface BoundingRect {
+  position: Vector;
+  size: Vector;
+}
 
 export interface Image extends BoundingRect {
-  lines: ImageLine[]
+  lines: ImageLine[];
 }
 
-export interface Viewport {
-  rows: number;
-  cols: number;
-}
+export type ImageLine = (string | null)[];
 
+function createFrameImage(imgRect: BoundingRect): Image {
+  const {
+    size: { x: width, y: height },
+  } = imgRect;
 
-function createFrameImage(contentRect: BoundingRect): Image {
   const rect: BoundingRect = {
-    x: contentRect.x - 1,
-    y: contentRect.y - 1,
-    width: contentRect.width + 2,
-    height: contentRect.height + 2,
-  }
+    position: {
+      x: imgRect.position.x - 1,
+      y: imgRect.position.y - 1,
+    },
+    size: {
+      x: width + 2,
+      y: height + 2,
+    },
+  };
 
-  const topbottom = new Array(contentRect.width).fill('─');
-  const empty = new Array(contentRect.width).fill(null);
+  const topbottom = new Array(width).fill('─');
+  const empty = new Array(width).fill(null);
   const lines: ImageLine[] = [];
   lines.push(['╭', ...topbottom, '╮']);
-  for (let i = 0; i < contentRect.height; i++) {
-    lines.push(['│', ...empty, '│'])
+  for (let i = 0; i < height; i++) {
+    lines.push(['│', ...empty, '│']);
   }
   lines.push(['╰', ...topbottom, '╯']);
 
   return { ...rect, lines };
 }
 
-function makeComposition(viewport: Viewport, images: Image[]): string {
+function makeComposition(viewport: Vector, images: Image[]): string {
   // Заполняю экран пустотой
-  const screen: string[][] = Array.from(new Array(viewport.rows), () => (
-    new Array(viewport.cols).fill(BACKFACE)
-  ))
+  const screen: string[][] = Array.from(new Array(viewport.y), () => new Array(viewport.x).fill(BACKFACE));
 
   // Накладываю изображения одно за другим
   images.forEach((img) => {
-    const imageLinesCount = Math.min(img.lines.length, img.height);
-    for (let i = 0, y = img.y; i < imageLinesCount && y < viewport.rows; i++, y++) {
+    const imageLinesCount = Math.min(img.lines.length, img.size.y);
+    for (let i = 0, y = img.position.y; i < imageLinesCount && y < viewport.y; i++, y++) {
       const line = img.lines[i];
-      const lineCharsCount = Math.min(line.length, img.width);
-      for (let j = 0, x = img.x; j < lineCharsCount && x < viewport.cols; j++, x++) {
+      const lineCharsCount = Math.min(line.length, img.size.x);
+      for (let j = 0, x = img.position.x; j < lineCharsCount && x < viewport.x; j++, x++) {
         const char = line[j];
         if (char) {
           // console.log('SET', y, x, char);
@@ -61,7 +74,7 @@ function makeComposition(viewport: Viewport, images: Image[]): string {
         }
       }
     }
-  })
+  });
 
   // Собираю в одну строку
   const joined = screen.map((x) => x.join('')).join('');
@@ -69,28 +82,25 @@ function makeComposition(viewport: Viewport, images: Image[]): string {
   return joined;
 }
 
-
-export function usePrinter(props: {
-  image: Ref<Image>
-}) {
+export function usePrinter(props: { image: Ref<Image | null> }) {
   const out = process.stdout;
   let wasFirstPrint = false;
-  
-  const terminalViewport: Viewport = reactive({
-    rows: 0,
-    cols: 0
+
+  const terminalViewport: Vector = reactive({
+    x: 0,
+    y: 0,
   });
 
-  const imageFrame = computed<Image>(() => createFrameImage(props.image.value));
-  const composition = computed<string>(() => makeComposition(terminalViewport, [imageFrame.value, props.image.value]))
+  const imageFrame = computed<Image | null>(() => createFrameImage(props.image.value));
+  const composition = computed<string>(() => makeComposition(terminalViewport, [imageFrame.value, props.image.value]));
 
   /**
    * Установка terminalSize в соответствие с текущими
    * настоящими размерами терминала
    */
   function syncTerminalViewport() {
-    terminalViewport.rows = out.rows;
-    terminalViewport.cols = out.columns;
+    terminalViewport.y = out.rows;
+    terminalViewport.x = out.columns;
   }
 
   /**
@@ -99,7 +109,7 @@ export function usePrinter(props: {
   function print(data: string): void {
     if (!wasFirstPrint) {
       wasFirstPrint = true;
-      out.write(`${'-'.repeat(terminalViewport.cols)}\n`);
+      out.write(`${'-'.repeat(terminalViewport.x)}\n`);
     } else {
       out.cursorTo(0, 0);
     }
@@ -107,18 +117,16 @@ export function usePrinter(props: {
   }
 
   syncTerminalViewport();
-  
+
   // Этого не будет на Windows
   out.on('resize', () => syncTerminalViewport);
 
   // Настраиваю отрисовку
   effect(() => {
     print(composition.value);
-  })
-
+  });
 
   return {
-    viewport: readonly(terminalViewport)
-
+    viewport: readonly(terminalViewport),
   };
 }
