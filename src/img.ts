@@ -1,4 +1,4 @@
-import { ref, computed, reactive } from '@vue/reactivity';
+import { ref, computed, reactive, Ref } from '@vue/reactivity';
 import chalk from 'chalk';
 import { delay } from './tools';
 import { Frame, Image, ImageLine, Resolution, Vector, Window } from './types';
@@ -6,18 +6,20 @@ import { Frame, Image, ImageLine, Resolution, Vector, Window } from './types';
 export function useText(pos: Vector, text: string, done: () => void): Image {
   const states = reactive<number[]>(new Array(text.length).fill(0));
 
-  function appear() {
-    const interval = setInterval(() => {
+  async function appear() {
+    while (true) {
       let i = -1;
       while (i < 0 || states[i] >= 2) {
         i = ~~(Math.random() * states.length);
       }
       states[i] += 1;
       if (states.every((x) => x >= 2)) {
-        clearInterval(interval);
-        setTimeout(disappear, 1000);
+        break;
       }
-    }, 50);
+      await delay(50);
+    }
+    await delay(1000);
+    disappear();
   }
 
   async function disappear() {
@@ -67,12 +69,10 @@ export function useText(pos: Vector, text: string, done: () => void): Image {
  * Создаёт изображение-рамку вокруг содержимого
  * @param target Может быть reactive
  */
-export function createFrame(target: Frame): Image {
+export function createFrame(target: Frame, mode: 'table' | 'debug' = 'table'): Image {
   const x = computed(() => target.x - 1);
   const y = computed(() => target.y - 1);
-  const lines = computed<ImageLine[]>(() => {
-    return tableFrame(target.w, target.h);
-  });
+  const lines = computed<ImageLine[]>(() => (mode === 'table' ? tableFrame : debugFrame)(target.w, target.h));
 
   return reactive({ x, y, lines });
 }
@@ -119,4 +119,34 @@ export function useCenteredWindow(r: Resolution): Window {
     h,
     composition: new Set(),
   });
+}
+
+export function useSnowflakes(f: Frame): Image[] {
+  const SNOWFLAKE_LINES: ImageLine[] = [[chalk.bold.cyan('*')]];
+  const SPEED = 0.3;
+  const COUNT = 20;
+
+  const height = computed(() => f.h);
+  const width = computed(() => f.w);
+
+  async function move(y: Ref<number>) {
+    const dt = 0.1;
+    const dtMillis = dt * 1000;
+    while (true) {
+      y.value += dt * SPEED;
+      y.value %= 1;
+      await delay(dtMillis);
+    }
+  }
+
+  const flakes: Image[] = Array.from(new Array(COUNT), () => {
+    const relX = ref(Math.random());
+    const relY = ref(-Math.random());
+    move(relY);
+    const x = computed(() => ~~(relX.value * width.value));
+    const y = computed(() => ~~(relY.value * height.value));
+    return reactive({ x, y, lines: SNOWFLAKE_LINES });
+  });
+
+  return flakes;
 }

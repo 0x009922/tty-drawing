@@ -63,27 +63,27 @@ function writeToBuffer(b: Buffer, x: number, y: number, value: string): void {
 }
 
 function fillImage(img: Image, buffer: Buffer, frame: Frame): void {
-  const frameEndX = frame.x + frame.w;
-  const frameEndY = frame.y + frame.h;
-
   let i = 0;
-  let y = img.y + frame.y;
+  let y = img.y;
   if (y < 0) {
     i -= y;
     y = 0;
   }
-  for (; i < img.lines.length && y < frameEndY; i++, y++) {
+  for (; i < img.lines.length && y < frame.h; i++, y++) {
     const line = img.lines[i];
     let j = 0;
-    let x = img.x + frame.x;
+    let x = img.x;
     if (x < 0) {
       j -= x;
       x = 0;
     }
-    for (; j < line.length && x < frameEndX; j++, x++) {
+    for (; j < line.length && x < frame.w; j++, x++) {
       const val = line[j];
       if (val) {
-        writeToBuffer(buffer, x, y, val);
+        // Считаю абсолютные координаты
+        const absX = x + frame.x;
+        const absY = y + frame.y;
+        writeToBuffer(buffer, absX, absY, val);
       }
     }
   }
