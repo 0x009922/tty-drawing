@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@vue/reactivity": "^3.0.2",
+    "chalk": "^4.1.0",
     "random-words": "^1.1.1",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.5"
