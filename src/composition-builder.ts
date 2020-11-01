@@ -1,5 +1,5 @@
 /* eslint-disable max-params */
-import { Composition, Resolution, Frame, Image, Window } from './types';
+import { Composition, Resolution, Frame, Image, Window, ZIndexed } from './types';
 
 const DEFAULT_BACKFACE = ' ';
 
@@ -90,7 +90,7 @@ function fillImage(img: Image, buffer: Buffer, frame: Frame): void {
 }
 
 function buildRecursive(comp: Composition, buffer: Buffer, frame: Frame): void {
-  for (const item of comp) {
+  for (const item of orderedComposition(comp)) {
     if (isImage(item)) {
       // Просто заполняю картинку внутри фрейма. Чётко в рамках
       fillImage(item, buffer, frame);
@@ -104,6 +104,18 @@ function buildRecursive(comp: Composition, buffer: Buffer, frame: Frame): void {
       }
     }
   }
+}
+
+/**
+ * Сортировка элементов композиции по z-index
+ */
+function orderedComposition(comp: Composition): (Window | Image)[] {
+  const arr = [...comp];
+  return arr.sort((a, b) => extractZIndex(a) - extractZIndex(b));
+}
+
+function extractZIndex(v: ZIndexed): number {
+  return v.z ?? 0;
 }
 
 export interface BuildCompositionOpts {

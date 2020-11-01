@@ -1,5 +1,6 @@
 import { ref, computed, reactive, Ref } from '@vue/reactivity';
 import chalk from 'chalk';
+import replsGenerator from './repls-generator';
 import { delay } from './tools';
 import { Frame, Image, ImageLine, Resolution, Vector, Window } from './types';
 
@@ -129,24 +130,51 @@ export function useSnowflakes(f: Frame): Image[] {
   const height = computed(() => f.h);
   const width = computed(() => f.w);
 
-  async function move(y: Ref<number>) {
-    const dt = 0.1;
-    const dtMillis = dt * 1000;
-    while (true) {
-      y.value += dt * SPEED;
-      y.value %= 1;
-      await delay(dtMillis);
+  function useRelativeSnowflakeCoords(): { x: Ref<number>; y: Ref<number> } {
+    const x = ref(Math.random());
+    const y = ref(-Math.random());
+
+    async function move() {
+      const dt = 0.1;
+      const dtMillis = dt * 1000;
+      while (true) {
+        y.value += dt * SPEED;
+        if (y.value >= 1) {
+          y.value -= 1;
+          x.value = Math.random();
+        }
+        await delay(dtMillis);
+      }
     }
+
+    move();
+
+    return { x, y };
   }
 
   const flakes: Image[] = Array.from(new Array(COUNT), () => {
-    const relX = ref(Math.random());
-    const relY = ref(-Math.random());
-    move(relY);
+    const { x: relX, y: relY } = useRelativeSnowflakeCoords();
     const x = computed(() => ~~(relX.value * width.value));
     const y = computed(() => ~~(relY.value * height.value));
     return reactive({ x, y, lines: SNOWFLAKE_LINES });
   });
 
   return flakes;
+}
+
+export function useInfiniteReplicas(window: Window): void {
+  const repls = replsGenerator();
+
+  function addText() {
+    const replica = repls.next().value;
+    const position: Vector = {
+      x: ~~(Math.random() * (window.w - replica.length)),
+      y: ~~(Math.random() * window.h),
+    };
+    const text = useText(position, replica, () => window.composition.delete(text));
+    window.composition.add(text);
+  }
+
+  addText();
+  setInterval(addText, 250);
 }

@@ -1,28 +1,21 @@
-import { reactive } from '@vue/reactivity';
+import { computed, reactive } from '@vue/reactivity';
 import usePrinter from './printer';
-import { Composition, Vector } from './types';
-import replsGenerator from './repls-generator';
-import { useText, createFrame, useCenteredWindow, useSnowflakes } from './img';
+import { Composition, Window } from './types';
+import { createFrame, useCenteredWindow, useSnowflakes, useInfiniteReplicas } from './img';
 
-const composition = reactive<Composition>(new Set());
-const { resolution } = usePrinter({ composition });
+const rootComposition = reactive<Composition>(new Set());
+const { resolution } = usePrinter({ composition: rootComposition });
 const mainWindow = useCenteredWindow(resolution);
-const flakes = useSnowflakes(mainWindow);
-const repls = replsGenerator();
-
-composition.add(mainWindow);
-composition.add(createFrame(mainWindow));
-flakes.forEach((x) => mainWindow.composition.add(x));
-
-function addText() {
-  const replica = repls.next().value;
-  const position: Vector = {
-    x: ~~(Math.random() * (mainWindow.w - replica.length)),
-    y: ~~(Math.random() * mainWindow.h),
-  };
-  const text = useText(position, replica, () => mainWindow.composition.delete(text));
-  mainWindow.composition.add(text);
-}
-
-addText();
-setInterval(addText, 250);
+useInfiniteReplicas(mainWindow);
+const flakesWindow: Window = reactive({
+  x: computed(() => mainWindow.x),
+  w: computed(() => mainWindow.w),
+  y: computed(() => mainWindow.y),
+  h: computed(() => mainWindow.h),
+  z: 10,
+  composition: new Set(),
+});
+useSnowflakes(flakesWindow).forEach((x) => flakesWindow.composition.add(x));
+rootComposition.add(mainWindow);
+rootComposition.add(flakesWindow);
+rootComposition.add(createFrame(mainWindow));

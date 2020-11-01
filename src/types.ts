@@ -3,18 +3,20 @@ export interface Vector {
   y: number;
 }
 
+export interface ZIndexed {
+  z?: number;
+}
+
 export interface Frame extends Vector {
-  x: number;
-  y: number;
   w: number;
   h: number;
 }
 
-export interface Window extends Frame {
+export interface Window extends Frame, ZIndexed {
   composition: Composition;
 }
 
-export interface Image extends Vector {
+export interface Image extends Vector, ZIndexed {
   lines: ImageLine[];
 }
 
