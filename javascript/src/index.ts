@@ -1,6 +1,5 @@
 import { computed, reactive } from '@vue/reactivity';
-import usePrinter from './printer';
-import { Composition, Window } from './types';
+import { usePrinter, Composition, Window } from './printer';
 import { createFrame, useCenteredWindow, useSnowflakes, useInfiniteReplicas } from './img';
 
 const rootComposition = reactive<Composition>(new Set());

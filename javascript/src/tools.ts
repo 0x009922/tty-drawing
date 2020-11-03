@@ -1,4 +1,4 @@
-import { Frame } from './types';
+import { Frame } from './printer';
 
 export const delay = (d: number) => new Promise((r) => setTimeout(r, d));
 

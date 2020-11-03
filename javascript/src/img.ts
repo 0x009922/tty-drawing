@@ -2,7 +2,7 @@ import { ref, computed, reactive, Ref } from '@vue/reactivity';
 import chalk from 'chalk';
 import replsGenerator from './repls-generator';
 import { delay } from './tools';
-import { Frame, Image, ImageLine, Resolution, Vector, Window } from './types';
+import { Frame, Image, ImageLine, Resolution, Vector, Window } from './printer';
 
 export function useText(pos: Vector, text: string, done: () => void): Image {
   const states = reactive<number[]>(new Array(text.length).fill(0));

@@ -1,4 +1,4 @@
-import { effect, reactive, readonly } from '@vue/reactivity';
+import { computed, effect, reactive, readonly } from '@vue/reactivity';
 import { Composition, Resolution } from './types';
 import { buildComposition } from './composition-builder';
 
@@ -43,15 +43,15 @@ export default function usePrinter(props: PrinterProps): Printer {
     process.stdout.write(compositionData);
   }
 
-  effect(() => {
-    print(
-      buildComposition({
-        composition,
-        resolution,
-        backface: props.backface,
-      }),
-    );
-  });
+  const buildedComposition = computed<string>(() => (
+    buildComposition({
+      composition,
+      resolution,
+      backface: props.backface,
+    })
+  ))
+
+  effect(() => print(buildedComposition.value));
 
   return { resolution };
 }
