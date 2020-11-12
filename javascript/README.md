@@ -1,4 +1,4 @@
-# voices
+# js_tty_voices
 
 Реализация на node.js с помощью `@vue/reactivity`.
 
