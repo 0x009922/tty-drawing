@@ -1,15 +1,17 @@
 defmodule TTX.CLI do
   @spec main(any) :: no_return
   def main(_args) do
-    dots = TTX.Dots.create()
-    loop(dots)
+    TTX.Dots.create("Hello")
+    |> loop()
   end
 
   @spec loop(TTX.Dots.t()) :: no_return
   defp loop(dots) do
-    Process.sleep(500)
     value = TTX.Dots.get_draw_string(dots)
-    IO.puts("Dots counter (main): #{value}")
+    clear = IO.ANSI.clear_line()
+    cursor_left = IO.ANSI.cursor_left(999)
+    IO.write(clear <> cursor_left <> value)
+    Process.sleep(50)
     loop(dots)
   end
 end
