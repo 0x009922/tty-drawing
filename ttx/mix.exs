@@ -8,7 +8,7 @@ defmodule Ttx.MixProject do
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       escript: [
-        main_module: TTX.Main,
+        main_module: TTX.CLI,
         name: "ttx_binary",
         path: "_build/ttx_binary"
       ],
