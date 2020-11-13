@@ -1,13 +1,15 @@
 defmodule TTX.CLI do
+  @spec main(any) :: no_return
   def main(_args) do
-    """
-    Что делаю?
+    dots = TTX.Dots.create()
+    loop(dots)
+  end
 
-    Повторю, хотя бы частично, то, что есть на js
-
-    Есть некая рамка по центру терминала, в ней
-    """
-    # Сначала
-    IO.puts("Hi!")
+  @spec loop(TTX.Dots.t()) :: no_return
+  defp loop(dots) do
+    Process.sleep(500)
+    value = TTX.Dots.get_draw_string(dots)
+    IO.puts("Dots counter (main): #{value}")
+    loop(dots)
   end
 end
