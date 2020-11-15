@@ -10,7 +10,6 @@ defmodule TTX.CLI do
     # alias TTX.Composition.Component
     # alias TTX.Composition
 
-
     elems = [
       Offset.new(2, 2, [
         TTX.TextDotsComponent.new("Looking at eternity")
@@ -21,7 +20,6 @@ defmodule TTX.CLI do
 
     # Builder.build(elems, 10, 10)
     # |> IO.puts()
-
 
     # Composition.unwrap_components([
     #   Window.new(5, 3, 10, 10, [

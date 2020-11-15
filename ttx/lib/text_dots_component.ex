@@ -5,7 +5,7 @@ defmodule TTX.TextDotsComponent do
   use TypedStruct
 
   typedstruct enforce: true do
-    field :dots, TextDots.t()
+    field(:dots, TextDots.t())
   end
 
   def new(text) do

@@ -7,9 +7,9 @@ defmodule TTX.Composition.Builder.Buffer do
   use TypedStruct
 
   typedstruct enforce: true do
-    field :rows, non_neg_integer()
-    field :columns, non_neg_integer()
-    field :map, map()
+    field(:rows, non_neg_integer())
+    field(:columns, non_neg_integer())
+    field(:map, map())
   end
 
   @spec new(non_neg_integer(), non_neg_integer()) :: t()

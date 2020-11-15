@@ -10,6 +10,7 @@ defmodule TTX.Composition.Dot.Test do
 
   test "non empty string to dots" do
     result = Dot.string_to_dots("Myaw")
+
     expected = [
       Dot.new(0, 0, "M"),
       Dot.new(1, 0, "y"),

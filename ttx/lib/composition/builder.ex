@@ -31,7 +31,7 @@ defmodule TTX.Composition.Builder do
             |> Frame.add_coords(frame)
             |> Frame.intersection(frame)
 
-            fill_buffer(buffer, window.elements, new_frame)
+          fill_buffer(buffer, window.elements, new_frame)
 
         %Offset{} = offset ->
           # смещение - обновляю фрейм, но не так, как window
@@ -41,7 +41,7 @@ defmodule TTX.Composition.Builder do
             |> Frame.add_coords(frame)
             |> Frame.intersection(frame)
 
-            fill_buffer(buffer, offset.elements, new_frame)
+          fill_buffer(buffer, offset.elements, new_frame)
 
         %Dot{} = dot ->
           # нашли точку - заполняю буффер!
