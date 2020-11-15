@@ -24,9 +24,10 @@ defmodule TTX.AppearingText.State.Test do
   end
 
   test "3-len string appeared after 3 ticks, not 2" do
-    state = State.init("abc")
-    |> State.tick()
-    |> State.tick()
+    state =
+      State.init("abc")
+      |> State.tick()
+      |> State.tick()
 
     assert State.current_slice(state) == "ab"
 
