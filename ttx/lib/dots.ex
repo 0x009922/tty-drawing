@@ -2,16 +2,16 @@ defmodule TTX.Dots do
   use TypedStruct
 
   typedstruct do
-    field :agent_pid, pid(), enforce: true
+    field(:agent_pid, pid(), enforce: true)
   end
 
   defmodule DotsState do
     typedstruct enforce: true do
-      field :counter, integer()
-      field :source_text, String.t
+      field(:counter, integer())
+      field(:source_text, String.t())
     end
 
-    @spec create(String.t) :: t
+    @spec create(String.t()) :: t
     def create(source) do
       %DotsState{
         counter: 0,
@@ -21,20 +21,20 @@ defmodule TTX.Dots do
 
     @spec update(t) :: t
     def update(val) do
-      val |> Map.update!(:counter, &(rem(&1 + 1, 4)))
+      val |> Map.update!(:counter, &rem(&1 + 1, 4))
     end
 
-    @spec compute_text(t) :: String.t
+    @spec compute_text(t) :: String.t()
     def compute_text(val) do
       dots = String.duplicate(".", val.counter)
       val.source_text <> dots
     end
   end
 
-  @spec create(text: String.t) :: t
+  @spec create(String.t()) :: t
   def create(text) do
     {:ok, agent} = Agent.start_link(fn -> DotsState.create(text) end)
-    spawn_link fn -> update_loop(agent) end
+    spawn_link(fn -> update_loop(agent) end)
     %TTX.Dots{agent_pid: agent}
   end
 
@@ -43,6 +43,7 @@ defmodule TTX.Dots do
     Agent.update(agent, fn v ->
       DotsState.update(v)
     end)
+
     Process.sleep(300)
     update_loop(agent)
   end
