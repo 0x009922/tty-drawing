@@ -69,7 +69,7 @@ defmodule TTX.Composition.Builder do
               y > h,
        do: buff
 
-  defp insert_dot(buff, _frame, dot) do
-    Buffer.write(buff, dot.x, dot.y, dot.val)
+  defp insert_dot(buff, frame, dot) do
+    Buffer.write(buff, frame.x + dot.x, frame.y + dot.y, dot.val)
   end
 end
