@@ -51,4 +51,10 @@ defmodule TTX.Composition.Builder.Test do
 
     assert result == " $ \n  ^\n   "
   end
+
+  test "Точка - nil" do
+    result = Builder.build([Dot.new(1, 1, nil)], 3, 3)
+
+    assert result == "   \n   \n   "
+  end
 end

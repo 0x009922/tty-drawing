@@ -50,6 +50,8 @@ defmodule TTX.Composition.Builder do
 
         component ->
           # Компонент! Динамически отдаст мне элементы
+          # IO.puts("Component found")
+          # IO.inspect(component)
           fill_buffer(buffer, Component.elements(component), frame)
       end
     end)

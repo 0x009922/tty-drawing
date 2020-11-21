@@ -11,12 +11,13 @@ defmodule TTX.CLI do
     # alias TTX.Composition
 
     elems = [
-      Offset.new(2, 2, [
-        TTX.TextDotsComponent.new("Looking at eternity")
-      ])
+      TTX.Components.Root.new()
     ]
+    {rows, cols} = TTX.Terminal.size()
 
-    loop(elems)
+    # bench(elems)
+
+    loop(elems, rows, cols)
 
     # Builder.build(elems, 10, 10)
     # |> IO.puts()
@@ -39,14 +40,30 @@ defmodule TTX.CLI do
     # init_state() |> loop()
   end
 
-  def loop(elems) do
-    rendered = Builder.build(elems, 10, 30)
+  defp loop(elems, rows, cols) do
+    rendered = Builder.build(elems, rows, cols)
     IO.write(IO.ANSI.clear() <> IO.ANSI.cursor(0, 0))
     IO.write(rendered)
 
-    Process.sleep(100)
-    loop(elems)
+    Process.sleep(10)
+    loop(elems, rows, cols)
   end
+
+  # defp bench(elems) do
+  #   {rows, cols} = TTX.Terminal.size()
+  #   list = Enum.to_list(1..10_000)
+  #   map_fun = fn i -> [i, i * i] end
+
+  #   Benchee.run(
+  #     %{
+  #       "flat_map" => fn -> Enum.flat_map(list, map_fun) end,
+  #       "map.flatten" => fn -> list |> Enum.map(map_fun) |> List.flatten() end
+  #     }
+  #     # %{
+  #     #   "render" => fn -> Builder.build(elems, 10, 10) end
+  #     # }
+  #   )
+  # end
 
   # defp init_state() do
   #   {:ok, agent} = Agent.start_link(fn -> nil end)

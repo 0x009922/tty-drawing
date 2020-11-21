@@ -20,4 +20,10 @@ defmodule TTX.Composition.Dot.Test do
 
     assert result == expected
   end
+
+  test "рисунок обновляется" do
+    dot = Dot.new(0, 0, "1") |> Dot.update_val("2")
+
+    assert dot.val == "2"
+  end
 end
