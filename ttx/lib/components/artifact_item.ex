@@ -1,5 +1,6 @@
 defmodule TTX.Components.ArtifactItem do
   alias TTX.Composition.{Dot, Component}
+  alias IO.ANSI
 
   @artifacts ["&", "$", "%", "#", "*", "^", ":", ";", "'", "`", "\"", "@", "!", "?", "/", "\\", "|"]
 
@@ -50,9 +51,17 @@ defmodule TTX.Components.ArtifactItem do
     rand_val = :rand.uniform() |> :math.pow(5)
     if rand_val > rem_val do
       Enum.random(@artifacts)
+      |> colorize_randomly()
+      # ANSI.color(1, 2, 5) <> Enum.random(@artifacts) <> ANSI.reset()
     else
       nil
     end
+  end
+
+
+  defp colorize_randomly(text) do
+    col = ANSI.color(100 + floor(:rand.uniform() * 155))
+    col <> text <> ANSI.reset()
   end
 
   defimpl Component, for: __MODULE__ do

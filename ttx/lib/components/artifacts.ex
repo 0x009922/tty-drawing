@@ -59,8 +59,8 @@ defmodule TTX.Components.Artifacts do
 
   @spec upd_loop(t()) :: no_return
   def upd_loop(self) do
-    Ease.run(3000, &ease_callback/2, state: self.items, ticks_per_second: 30, timing_fn: &ease_timing/1)
-    Process.sleep(3000)
+    Ease.run(2000, &ease_callback/2, state: self.items, ticks_per_second: 30, timing_fn: &ease_timing/1)
+    Process.sleep(500)
     upd_loop(self)
   end
 
