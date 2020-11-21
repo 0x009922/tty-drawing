@@ -3,7 +3,7 @@ defmodule TTX.Tools.Bench do
     elems = [
       TTX.Components.Root.new()
     ]
-    {rows, cols} = {50, 50}
+    {rows, cols} = {100, 100}
 
     Benchee.run(
       %{

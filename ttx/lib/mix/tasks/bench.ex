@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.BenchTtx do
+defmodule Mix.Tasks.Bench do
   use Mix.Task
 
   def run(_) do
