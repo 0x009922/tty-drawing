@@ -4,12 +4,13 @@ defmodule TTX.Components.Root do
   alias TTX.Components.Artifacts
 
   typedstruct enforce: true do
-    field :children, list()
+    field(:children, list())
   end
 
   @spec new :: t()
   def new do
     {rows, cols} = TTX.Terminal.size()
+
     %__MODULE__{
       children: [
         Artifacts.new(rows, cols)

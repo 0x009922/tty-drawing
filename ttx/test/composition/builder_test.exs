@@ -12,6 +12,7 @@ defmodule TTX.Composition.Builder.Test do
   test "Есть одна точка" do
     rows = 5
     columns = 5
+
     elements = [
       Dot.new(2, 3, "*")
     ]
@@ -24,6 +25,7 @@ defmodule TTX.Composition.Builder.Test do
   test "Есть точка в смещении" do
     rows = 5
     columns = 5
+
     elements = [
       Offset.new(2, 2, [
         Dot.new(1, 2, "Y")
@@ -38,6 +40,7 @@ defmodule TTX.Composition.Builder.Test do
   test "Есть точка в смещении в окне, и просто в смещении" do
     rows = 3
     columns = 3
+
     elements = [
       Offset.new(1, 0, [
         Window.new(1, 1, 10, 10, [

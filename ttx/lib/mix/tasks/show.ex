@@ -7,6 +7,7 @@ defmodule Mix.Tasks.Show do
     elems = [
       TTX.Components.Root.new()
     ]
+
     {rows, cols} = TTX.Terminal.size()
 
     loop(elems, rows, cols)

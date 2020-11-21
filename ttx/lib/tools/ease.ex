@@ -6,20 +6,13 @@ defmodule TTX.Tools.Ease do
   @type timing_function() :: (float() -> float())
   @type tick_function() :: (term, float() -> term)
   @type loop_state() :: %{
-    tick_state: any(),
-    delta: pos_integer(),
-    time: pos_integer(),
-    duration: pos_integer(),
-    timing_fn: timing_function(),
-    tick_fn: tick_function()
-  }
-
-  # use TypedStruct
-
-  # typedstruct enforce: true do
-  #   field :duration, pos_integer()
-  #   field :
-  # end
+          tick_state: any(),
+          delta: pos_integer(),
+          time: pos_integer(),
+          duration: pos_integer(),
+          timing_fn: timing_function(),
+          tick_fn: tick_function()
+        }
 
   @spec run(pos_integer(), tick_function(), keyword) :: {:ok, pid}
   def run(duration, tick_fn, opts \\ []) do
@@ -27,18 +20,19 @@ defmodule TTX.Tools.Ease do
     tps = Keyword.get(opts, :ticks_per_second, 10)
     timing_fn = Keyword.get(opts, :timing_fn, &default_timing_fn/1)
 
-    pid = spawn_link fn ->
-      delta = div 1000, tps
+    pid =
+      spawn_link(fn ->
+        delta = div(1000, tps)
 
-      loop(%{
-        tick_state: state,
-        duration: duration,
-        time: 0,
-        delta: delta,
-        timing_fn: timing_fn,
-        tick_fn: tick_fn
-      })
-    end
+        loop(%{
+          tick_state: state,
+          duration: duration,
+          time: 0,
+          delta: delta,
+          timing_fn: timing_fn,
+          tick_fn: tick_fn
+        })
+      end)
 
     {:ok, pid}
 
@@ -55,19 +49,14 @@ defmodule TTX.Tools.Ease do
 
   defp default_timing_fn(val), do: val
 
-
   @spec loop(loop_state()) :: no_return()
   defp loop(state)
-  # defp loop(%{time: 0} = state) do
-  #   # начало
-  #   state = fire_tick(state)
-  #   Process.sleep(state.delta)
-  #   loop()
-  # end
+
   defp loop(%{time: t, duration: d} = state) when t >= d do
     # конец
     fire_tick(state)
   end
+
   defp loop(state) do
     tick_start = get_now()
 
@@ -91,25 +80,15 @@ defmodule TTX.Tools.Ease do
 
   @spec calc_timing(loop_state()) :: float()
   defp calc_timing(%{time: t, duration: d, timing_fn: tfn}) do
-    # a = if t <= 0 do
-    #   0
-    # else
-    #   if t >= d, do: d, else: t
-    # end
-
-    normalized = case {t, d} do
-      {t, _d} when t <= 0 -> 0
-      {t, d} when t >= d -> d
-      {t, _d} -> t
-    end
+    normalized =
+      case {t, d} do
+        {t, _d} when t <= 0 -> 0
+        {t, d} when t >= d -> d
+        {t, _d} -> t
+      end
 
     tfn.(normalized / d)
   end
-
-  # defp normalize_time(time, duration)
-  # defp normalize_time(t, _d) when t <= 0, do: 0
-  # defp normalize_time(t, d) when t >= d, do: d
-  # defp normalize_time(t, _d), do: t
 
   @spec fire_tick(loop_state()) :: loop_state()
   defp fire_tick(state) do

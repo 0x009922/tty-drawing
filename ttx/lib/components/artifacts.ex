@@ -12,13 +12,10 @@ defmodule TTX.Components.Artifacts do
   use TypedStruct
 
   typedstruct enforce: true do
-    field :items, [{float(), ArtifactItem.t()}]
+    field(:items, [{float(), ArtifactItem.t()}])
   end
 
   def new(rows, cols) do
-    # {rows, cols} = TTX.Terminal.size()
-    # {rows, cols} =
-
     cx = cols / 2
     cy = rows / 2
     radius = piph_terminal(cx, cy)
@@ -28,27 +25,23 @@ defmodule TTX.Components.Artifacts do
         Enum.reduce(0..(cols - 1), acc, fn x, acc ->
           item_rad = piph_terminal(cx - x, cy - y)
           item_val = item_rad / radius
-          # IO.puts("(#{x}; #{y}) #{item_rad} / #{radius} = #{item_val}")
 
-          item = ArtifactItem.new(%{
-            x: x,
-            y: y,
-            remoteness: item_val
-          })
+          item =
+            ArtifactItem.new(%{
+              x: x,
+              y: y,
+              remoteness: item_val
+            })
 
           [{item_val, item} | acc]
         end)
       end)
       |> Enum.sort(fn {a, _}, {b, _} -> a <= b end)
-      # |> Enum.map(fn {_, item} -> item end)
 
     self = %__MODULE__{items: items}
-    spawn_link fn -> upd_loop(self) end
+    spawn_link(fn -> upd_loop(self) end)
 
     self
-
-
-
 
     # надо делать сетку на весь viewport
     # всю её забить артефакт-итемами
@@ -59,22 +52,25 @@ defmodule TTX.Components.Artifacts do
 
   @spec upd_loop(t()) :: no_return
   def upd_loop(self) do
-    Ease.run(2000, &ease_callback/2, state: self.items, ticks_per_second: 30, timing_fn: &ease_timing/1)
+    Ease.run(2000, &ease_callback/2,
+      state: self.items,
+      ticks_per_second: 30,
+      timing_fn: &ease_timing/1
+    )
+
     Process.sleep(500)
     upd_loop(self)
   end
 
   defp ease_timing(x) do
-    :math.sin(x * :math.pi / 2)
+    :math.sin(x * :math.pi() / 2)
   end
 
   defp ease_callback(items, time) do
     {for_update, items} = take_items_for_update(items, time)
 
-    spawn_link fn -> shuffle_update(for_update) end
+    spawn_link(fn -> shuffle_update(for_update) end)
 
-    # IO.inspect(Enum.take(items, 2))
-    # IO.puts("Tick! #{time}")
     items
   end
 
@@ -96,6 +92,7 @@ defmodule TTX.Components.Artifacts do
   defp take_items_for_update(items, time)
   defp take_items_for_update([], _), do: {[], []}
   defp take_items_for_update([{val, _} | _] = tail, time) when val > time, do: {[], tail}
+
   defp take_items_for_update([{_, artifact} | tail], time) do
     {acc, tail} = take_items_for_update(tail, time)
     {[artifact | acc], tail}
@@ -104,14 +101,16 @@ defmodule TTX.Components.Artifacts do
   defp piph_terminal(x, y), do: piph(x, y * 2.1)
 
   defp piph(a, b) do
-    (a * a) + (b * b)
+    (a * a + b * b)
     |> :math.pow(0.5)
   end
 
   defimpl Component, for: __MODULE__ do
     def elements(%TTX.Components.Artifacts{items: items}) do
       Enum.map(items, fn {_, x} -> x end)
-      # IO.puts("artifacts")
+
+      # Асинхронный вариант. Работает медленнее в 4 раза
+
       # Enum.map(items, fn {_, x} -> x end)
       # |> Task.async_stream(fn item -> Component.elements(item) end)
       # |> Enum.map(fn {:ok, [val]} -> val end)

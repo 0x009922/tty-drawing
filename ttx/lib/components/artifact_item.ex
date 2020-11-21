@@ -2,7 +2,25 @@ defmodule TTX.Components.ArtifactItem do
   alias TTX.Composition.{Dot, Component}
   alias IO.ANSI
 
-  @artifacts ["&", "$", "%", "#", "*", "^", ":", ";", "'", "`", "\"", "@", "!", "?", "/", "\\", "|"]
+  @artifacts [
+    "&",
+    "$",
+    "%",
+    "#",
+    "*",
+    "^",
+    ":",
+    ";",
+    "'",
+    "`",
+    "\"",
+    "@",
+    "!",
+    "?",
+    "/",
+    "\\",
+    "|"
+  ]
 
   @moduledoc """
   Компонент-артифакт. Простая точка, которая обновляется по особой логике.
@@ -15,8 +33,8 @@ defmodule TTX.Components.ArtifactItem do
   use TypedStruct
 
   typedstruct enforce: true do
-    field :agent, pid()
-    field :remoteness, float()
+    field(:agent, pid())
+    field(:remoteness, float())
   end
 
   @spec new(%{remoteness: any, x: integer, y: integer}) :: t()
@@ -33,10 +51,6 @@ defmodule TTX.Components.ArtifactItem do
   def update(%__MODULE__{agent: agent, remoteness: r} = self) do
     Agent.update(agent, fn dot -> Dot.update_val(dot, gen_new_artifact(r, dot.val)) end)
     self
-    # %__MODULE__{
-    #   dot: Dot.update_val(dot, gen_new_artifact(r, dot.val)),
-    #   remoteness: r
-    # }
   end
 
   defp gen_new_artifact(val, old) do
@@ -49,15 +63,14 @@ defmodule TTX.Components.ArtifactItem do
 
   defp gen_artifact(rem_val) do
     rand_val = :rand.uniform() |> :math.pow(5)
+
     if rand_val > rem_val do
       Enum.random(@artifacts)
       |> colorize_randomly()
-      # ANSI.color(1, 2, 5) <> Enum.random(@artifacts) <> ANSI.reset()
     else
       nil
     end
   end
-
 
   defp colorize_randomly(text) do
     col = ANSI.color(100 + floor(:rand.uniform() * 155))
