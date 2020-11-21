@@ -59,8 +59,8 @@ defmodule TTX.Components.Artifacts do
 
   @spec upd_loop(t()) :: no_return
   def upd_loop(self) do
-    Ease.run(1300, &ease_callback/2, state: self.items, ticks_per_second: 30, timing_fn: &ease_timing/1)
-    Process.sleep(700)
+    Ease.run(3000, &ease_callback/2, state: self.items, ticks_per_second: 30, timing_fn: &ease_timing/1)
+    Process.sleep(3000)
     upd_loop(self)
   end
 
@@ -69,18 +69,36 @@ defmodule TTX.Components.Artifacts do
   end
 
   defp ease_callback(items, time) do
-    fire_updates(items, time)
+    {for_update, items} = take_items_for_update(items, time)
+
+    spawn_link fn -> shuffle_update(for_update) end
+
     # IO.inspect(Enum.take(items, 2))
     # IO.puts("Tick! #{time}")
-    # items
+    items
   end
 
-  defp fire_updates(items, time)
-  defp fire_updates([], _), do: []
-  defp fire_updates([{val, _} | _] = items, time) when val > time, do: items
-  defp fire_updates([{_, artifact} | tail], time) do
-    ArtifactItem.update(artifact)
-    fire_updates(tail, time)
+  defp shuffle_update(items) do
+    # надо побить всё на N чанков примерно
+    items_length = length(items)
+    chunk_size = max(1, div(items_length, 7))
+
+    Enum.shuffle(items)
+    |> Enum.chunk_every(chunk_size)
+    |> Enum.each(fn chunk ->
+      Enum.each(chunk, &ArtifactItem.update/1)
+      Process.sleep(30)
+    end)
+  end
+
+  @type items_with_val() :: [{float(), ArtifactItem.t()}]
+  @spec take_items_for_update(items_with_val(), float()) :: {[ArtifactItem.t()], items_with_val()}
+  defp take_items_for_update(items, time)
+  defp take_items_for_update([], _), do: {[], []}
+  defp take_items_for_update([{val, _} | _] = tail, time) when val > time, do: {[], tail}
+  defp take_items_for_update([{_, artifact} | tail], time) do
+    {acc, tail} = take_items_for_update(tail, time)
+    {[artifact | acc], tail}
   end
 
   defp piph_terminal(x, y), do: piph(x, y * 2.1)
