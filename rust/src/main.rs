@@ -1,56 +1,63 @@
-mod rendering;
-use std::thread;
-use std::time::Duration;
-use rendering::composition::{Image, ImageAtom};
-
+/**
+ * Цель этого концепта - работа с итераторами.
+ * 
+ * Нужно создать функцию, которая принимала бы итератор,
+ * который бы возвращал enum из двух вариантов. Первый вариант - это,
+ * допустим, какой-нибудь символ, обычный char. Второй вариант - это
+ * некая функция (замыкание), которая возвращает итератор, идентичный
+ * первоначальному по типу. То есть она отдавала бы итератор, который
+ * можно было бы заново пустить в изначальную функцию, создавая
+ * рекурсию и фрактальное раскрытие дерева элементов.
+ * 
+ * Для начала можно сделать это с использованием векторов как частного 
+ * случая итератора, а затем уже сделать универсально с итератором,
+ * чтобы на вход шли и вектора, и массивы, и что угодно.
+ * 
+ * Реализация позволит понимать, как реализовать гибкий фрактальный рендеринг
+ * дерева компонентов.
+ */
 fn main() {
-  // упростим задачу - сделаю одну структуру, в которой есть одно обновляющееся изображение
-  // буду постоянно тикать и давать ей возможность обновляться, а потом заимствовать её композицию
-  // и отдавать на рендер
+  let sub2: Vec<Item> = vec![
+    Item::Final('3')
+  ];
 
-  let mut renderer = rendering::TerminalRenderer::new();
+  let sub1: Vec<Item> = vec![
+    Item::Final('e'),
+    Item::Subtree(&sub2),
+    Item::Final('n'),
+  ];
 
-  let mut img = Img::new(5);
-  let interval = Duration::from_millis(100);
+  let items: Vec<Item> = vec![
+    Item::Final('o'),
+    Item::Final('p'),
+    Item::Subtree(&sub1),
+    Item::Final('m')
+  ];
 
-  loop {
-    img.tick();
-    renderer.render(&img.image);
-    thread::sleep(interval);
-  }
+  let expanded = expand_items(&items);
+  assert_eq!(expanded, vec!['o', 'p', 'e', '3', 'n', 'm']);
+  println!("{:?}", expanded)
 }
 
-struct Img {
-  counter: usize,
-  image: Image,
-  size: usize
+enum Item<'a> {
+  Final(char),
+  Subtree(&'a Vec<Item<'a>>)
 }
 
-impl Img {
-  fn new(size: usize) -> Img {
-    let img_data: Vec<ImageAtom> = (0..size).into_iter().map(|_| ImageAtom(None)).collect();
+fn expand_items(items: &Vec<Item>) -> Vec<char> {
+  let mut result: Vec<char> = vec![];
 
-    Img {
-      counter: 0,
-      size,
-      image: Image {
-        x: 5,
-        y: 5,
-        lines: vec![img_data]
+  for item in items.iter() {
+    match item {
+      Item::Final(x) => result.push(*x),
+      Item::Subtree(sub_items) => {
+        let expanded = expand_items(sub_items);
+        for sub_item in expanded.iter() {
+          result.push(*sub_item)
+        }
       }
     }
   }
 
-  fn tick(&mut self) {
-    self.counter += 1;
-    self.counter %= self.size;
-    self.update_image();
-  }
-
-  fn update_image(&mut self) {
-    for i in 0..self.size {
-      let val: Option<char> = if self.counter == i { Some('_') } else { None };
-      self.image.lines[0][i] = ImageAtom(val);
-    }
-  }
+  result
 }
