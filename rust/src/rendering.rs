@@ -1,12 +1,12 @@
 // mod composition;
-use termion::cursor;
 use std::io::{self, Write};
+use termion::cursor;
 // use std::cmp;
 // // use rendering::c
 // // pub use composition::*;
 
 // enum Element {
-    
+
 // }
 
 // pub struct Offset<T, S>
@@ -19,7 +19,6 @@ use std::io::{self, Write};
 //     y: u8,
 //     slot: S
 // }
-
 
 // pub mod composition {
 //     // pub trait CompositionProvider {
@@ -50,7 +49,7 @@ use std::io::{self, Write};
 
 pub struct TerminalResolution {
     rows: usize,
-    columns: usize
+    columns: usize,
 }
 
 impl TerminalResolution {
@@ -58,7 +57,7 @@ impl TerminalResolution {
         let (columns, rows) = termion::terminal_size().expect("Failed to get terminal size");
         TerminalResolution {
             rows: rows as usize,
-            columns: columns as usize
+            columns: columns as usize,
         }
     }
 
@@ -118,12 +117,10 @@ impl TerminalResolution {
 //     (*a1, (a2 - a1) as usize)
 // }
 
-
-
 pub struct ArtBuffer {
     buff: Vec<Vec<char>>,
-    rows: usize,
-    cols: usize
+    // rows: usize,
+    // cols: usize
 }
 
 impl ArtBuffer {
@@ -131,7 +128,7 @@ impl ArtBuffer {
         // Возможно тут одна строка на всех
         let row = vec![' '; res.columns];
         let rows = vec![row; res.rows];
-        Self { buff: rows, rows: res.rows, cols: res.columns }
+        Self { buff: rows }
     }
 
     pub fn clear(&mut self) {
@@ -147,13 +144,13 @@ impl ArtBuffer {
         self.buff[y][x] = ch;
     }
 
-    pub fn rows(&self) -> usize {
-        self.rows
-    }
+    // pub fn rows(&self) -> usize {
+    //     self.rows
+    // }
 
-    pub fn cols(&self) -> usize {
-        self.cols
-    }
+    // pub fn cols(&self) -> usize {
+    //     self.cols
+    // }
 
     fn build(&self) -> String {
         let mut rows: Vec<String> = Vec::with_capacity(self.buff.len());
@@ -165,7 +162,6 @@ impl ArtBuffer {
     }
 }
 
-
 // fn build_composition(comp: &Composition, res: &TerminalResolution) -> String {
 //     let line = "#".repeat(res.columns as usize);
 //     let v = vec![line; res.rows as usize];
@@ -175,7 +171,7 @@ impl ArtBuffer {
 pub struct TerminalArtist {
     was_first_render: bool,
     pub resolution: TerminalResolution,
-    pub buffer: ArtBuffer
+    pub buffer: ArtBuffer,
 }
 
 impl TerminalArtist {
@@ -185,7 +181,7 @@ impl TerminalArtist {
         Self {
             was_first_render: false,
             resolution,
-            buffer
+            buffer,
         }
     }
 
@@ -202,7 +198,6 @@ impl TerminalArtist {
         io::stdout().flush().unwrap();
     }
 }
-
 
 // // TODO - переписать функционально, рекурсивно циклы
 // fn fill_image(buff: &mut PaintBuffer, img: &Image, frame: &Frame) {
