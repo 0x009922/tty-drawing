@@ -27,6 +27,10 @@ fn main() {
   }
 }
 
+
+/**
+ * Генерация линий тумана
+ */
 fn generate_fog_lines(rng: &mut ThreadRng, res: &TerminalResolution) -> Vec<FogLine> {
   const COUNT: u32 = 50; 
   let (rows, cols) = res.get_rows_cols();
@@ -50,6 +54,9 @@ const FOG_SPEED: (f32, f32) = (2.0, 5.0);
 
 // длина стрелочки тумана
 const FOG_LEN: (f32, f32) = (2.0, 5.0);
+
+// символ, которым рисуется туман
+const FOG_CHAR: char = '-';
 
 struct FogLine {
   // позиция горизонтально - плавающая
@@ -90,6 +97,8 @@ impl FogLine {
 
 impl Tick for FogLine {
   fn tick(&mut self, ms: u32) {
+    // движение линии со своей скоростью в своём направлении
+
     let mut delta = (ms as f32) * 0.001 * self.speed;
     if self.reverse {
       delta *= -1.0;
@@ -101,13 +110,15 @@ impl Tick for FogLine {
 
 impl Art for FogLine {
   fn draw(&self, artist: &mut TerminalArtist) {
+    // рисование линии в зависимости от её положения
+
     let y = self.y as usize;
     let x_start = self.x.round() as usize;
     let x_end = (self.x + self.length).round() as usize;
 
     for i in x_start..(x_end + 1) {
       let x = i % artist.buffer.cols();
-      artist.buffer.write(x, y, '-')
+      artist.buffer.write(x, y, FOG_CHAR)
     }
   }
 }
