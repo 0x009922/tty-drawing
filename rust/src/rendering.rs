@@ -119,8 +119,8 @@ impl TerminalResolution {
 
 pub struct ArtBuffer {
     buff: Vec<Vec<char>>,
-    // rows: usize,
-    // cols: usize
+    rows: usize,
+    cols: usize
 }
 
 impl ArtBuffer {
@@ -128,7 +128,11 @@ impl ArtBuffer {
         // Возможно тут одна строка на всех
         let row = vec![' '; res.columns];
         let rows = vec![row; res.rows];
-        Self { buff: rows }
+        Self {
+            buff: rows,
+            rows: res.rows,
+            cols: res.columns
+        }
     }
 
     pub fn clear(&mut self) {
@@ -140,8 +144,11 @@ impl ArtBuffer {
         }
     }
 
+    // TODO: сделать дженериком, который бы принимал любой тип x;y и переводил внутри в usize
     pub fn write(&mut self, x: usize, y: usize, ch: char) {
-        self.buff[y][x] = ch;
+        if x < self.cols && y < self.rows {
+            self.buff[y][x] = ch;
+        }
     }
 
     // pub fn rows(&self) -> usize {
