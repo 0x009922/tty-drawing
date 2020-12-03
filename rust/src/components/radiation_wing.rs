@@ -1,14 +1,15 @@
 use std::collections::HashMap;
 use std::f32::consts::PI;
+use termion::{color, style};
 
 use crate::core::*;
 use crate::rendering::*;
 
 const Y_SCALE_FACTOR: f32 = 0.5;
 
-const RADWING_RADIUS: (f32, f32) = (5.0, 25.0);
+const RADWING_RADIUS: (f32, f32) = (8.0, 35.0);
 const RADWING_WIDTH_ANGLE: f32 = PI / 3.0 * 0.8;
-const RADWING_ROTATION_SPEED: f32 = 0.5;
+const RADWING_ROTATION_SPEED: f32 = 0.3;
 
 pub struct RadiationWing {
     current_angle: f32,
@@ -75,7 +76,8 @@ impl RadiationWing {
             // panic!("debug");
 
             // заливаю
-            self.buff.fill(x as i32, (y * Y_SCALE_FACTOR) as i32, '#');
+            let fill_px = format!("{}{}{}", color::Fg(color::Yellow), '#', color::Fg(color::Reset));
+            self.buff.fill(x as i32, (y * Y_SCALE_FACTOR) as i32, &fill_px);
         }
     }
 }
@@ -160,11 +162,12 @@ fn draw_arc(buff: &mut VirtualBuffer, radius: f32, a1: f32, a2: f32) {
         let x = coords.0.round() as i32;
         let y = (coords.1 * Y_SCALE_FACTOR).round() as i32;
         let ch = angle_to_line_char(-(a + PI / 2.0));
+        let ch_styled = format!("{}{}{}", style::Bold, ch, style::Reset);
         // if a < PI / 2.0 && a > (PI / 4.0) {
         //     println!("{};{} a = {} - '{}'", x, y, a, ch);
         //     panic!("debug");
         // }
-        buff.set_px(x, y, Some(ch));
+        buff.set_px(x, y, Some(ch_styled));
 
         // переход дальше
         let mut next_coords = coords;
@@ -178,6 +181,7 @@ fn draw_arc(buff: &mut VirtualBuffer, radius: f32, a1: f32, a2: f32) {
 
 fn draw_side(buff: &mut VirtualBuffer, a: f32, r1: f32, r2: f32) {
     let side_char = angle_to_line_char(-a);
+    let pixel = format!("{}{}{}", style::Bold, side_char, style::Reset);
 
     const DR: f32 = 1.0;
     let mut r = r1;
@@ -187,7 +191,7 @@ fn draw_side(buff: &mut VirtualBuffer, a: f32, r1: f32, r2: f32) {
         // закрашиваю
         let x = coords.0.round() as i32;
         let y = (coords.1 * Y_SCALE_FACTOR).round() as i32;
-        buff.set_px(x, y, Some(side_char));
+        buff.set_px(x, y, Some(pixel.clone()));
 
         // дальше
         let mut next_coords = coords;
@@ -299,7 +303,7 @@ mod tests {
 // *** abstract buffer
 
 struct VirtualBuffer {
-    map: HashMap<(i32, i32), Option<char>>,
+    map: HashMap<(i32, i32), Option<String>>,
     offset: (i32, i32),
     bounds: VirtualBufferBounds,
 }
@@ -339,13 +343,13 @@ impl VirtualBuffer {
     }
 
     /// Зарисовка одной точки
-    fn set_px(&mut self, x: i32, y: i32, val: Option<char>) {
+    fn set_px(&mut self, x: i32, y: i32, val: Option<String>) {
         let current_val = self.map.entry((x, y)).or_insert(None);
         *current_val = val;
     }
 
-    /// Взятия данных пикселя
-    fn get_px(&self, x: i32, y: i32) -> &Option<char> {
+    /// Взятие данных пикселя
+    fn get_px(&self, x: i32, y: i32) -> &Option<String> {
         match self.map.get(&(x, y)) {
             Some(v) => v,
             None => &None,
@@ -391,13 +395,13 @@ impl VirtualBuffer {
 
     /// Заливка всех None-пикселей, начиная с переданной координаты
     /// TODO оптимизировать
-    fn fill(&mut self, x: i32, y: i32, val: char) {
+    fn fill(&mut self, x: i32, y: i32, val: &String) {
         // self.debug_print();
         // println!("{:?} - {}", (x, y), val);
         // panic!("debug");
 
         // закраска сразу
-        self.set_px(x, y, Some(val));
+        self.set_px(x, y, Some(val.clone()));
 
         // пробегаюсь по вариантам соседей
         for (dx, dy) in NEIGHBOR_VARIANTS.iter() {
@@ -423,7 +427,7 @@ impl VirtualBuffer {
 
             if x >= 0 && y >= 0 {
                 if let Some(v) = val {
-                    buff.write(x as usize, y as usize, *v);
+                    buff.write_composed(x as usize, y as usize, v.clone());
                 }
             }
         }

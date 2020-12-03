@@ -21,28 +21,45 @@ impl TerminalResolution {
 }
 
 pub struct ArtBuffer {
-    buff: Vec<Vec<char>>,
+    buff: Vec<Vec<ArtPixel>>,
     rows: usize,
     cols: usize,
+    // backface: char
+}
+
+pub enum ArtPixel {
+    Simple(char),
+    Composed(String)
 }
 
 impl ArtBuffer {
     pub fn new(res: &TerminalResolution) -> Self {
-        // Возможно тут одна строка на всех
-        let row = vec![' '; res.columns];
-        let rows = vec![row; res.rows];
+        let mut buff = Vec::with_capacity(res.rows);
+        for _ in 0..res.rows {
+            let mut row_vec = Vec::with_capacity(res.columns);
+            for _ in 0..res.columns {
+                row_vec.push(ArtPixel::Simple(' '))
+            }
+            buff.push(row_vec);
+        }
+
         Self {
-            buff: rows,
+            buff,
             rows: res.rows,
             cols: res.columns,
+            // backface: ' '
         }
     }
+
+    // pub fn set_backface(&mut self, val: char) {
+    //     self.backface = val;
+    // }
 
     pub fn clear(&mut self) {
         for row_num in 0..self.buff.len() {
             let row_len = self.buff[row_num].len();
             for col_num in 0..row_len {
-                self.buff[row_num][col_num] = ' ';
+                self.buff[row_num][col_num] = ArtPixel::Simple(' ');
             }
         }
     }
@@ -50,16 +67,42 @@ impl ArtBuffer {
     // TODO: сделать дженериком, который бы принимал любой тип x;y и переводил внутри в usize
     pub fn write(&mut self, x: usize, y: usize, ch: char) {
         if x < self.cols && y < self.rows {
-            self.buff[y][x] = ch;
+            self.buff[y][x] = ArtPixel::Simple(ch);
+        }
+    }
+
+    pub fn write_composed(&mut self, x: usize, y: usize, val: String) {
+        if x < self.cols && y < self.rows {
+            self.buff[y][x] = ArtPixel::Composed(val);
         }
     }
 
     fn build(&self) -> String {
         let mut rows: Vec<String> = Vec::with_capacity(self.buff.len());
-        let vec_rows = &self.buff;
-        for row in vec_rows {
-            rows.push(row.iter().collect());
+
+        for row in &self.buff {
+            let row_len = row.iter().fold(0, |acc, x| {
+                let len = match x {
+                    ArtPixel::Simple(_) => 1,
+                    ArtPixel::Composed(x) => x.len()
+                };
+                len + acc
+            });
+
+            let mut row_str = String::with_capacity(row_len);
+
+            for pixel in row.iter() {
+                match pixel {
+                    ArtPixel::Simple(val) => row_str.push(*val),
+                    ArtPixel::Composed(val) => {
+                        row_str.push_str(&val);
+                    }
+                }
+            }
+
+            rows.push(row_str);
         }
+
         rows.join("\n")
     }
 }
