@@ -29,7 +29,7 @@ pub struct ArtBuffer {
 
 pub enum ArtPixel {
     Simple(char),
-    Composed(String)
+    Composed(String),
 }
 
 impl ArtBuffer {
@@ -84,7 +84,7 @@ impl ArtBuffer {
             let row_len = row.iter().fold(0, |acc, x| {
                 let len = match x {
                     ArtPixel::Simple(_) => 1,
-                    ArtPixel::Composed(x) => x.len()
+                    ArtPixel::Composed(x) => x.len(),
                 };
                 len + acc
             });

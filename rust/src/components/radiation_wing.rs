@@ -76,8 +76,14 @@ impl RadiationWing {
             // panic!("debug");
 
             // заливаю
-            let fill_px = format!("{}{}{}", color::Fg(color::Yellow), '#', color::Fg(color::Reset));
-            self.buff.fill(x as i32, (y * Y_SCALE_FACTOR) as i32, &fill_px);
+            let fill_px = format!(
+                "{}{}{}",
+                color::Fg(color::Yellow),
+                '#',
+                color::Fg(color::Reset)
+            );
+            self.buff
+                .fill(x as i32, (y * Y_SCALE_FACTOR) as i32, &fill_px);
         }
     }
 }

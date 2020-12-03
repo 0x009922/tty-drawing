@@ -75,7 +75,12 @@ impl core::Art for FogLine {
 
         for i in x_start..(x_end + 1) {
             let x = i % self.max_x as usize;
-            let s = format!("{}{}{}", color::Fg(color::LightBlack), '-', color::Fg(color::Reset));
+            let s = format!(
+                "{}{}{}",
+                color::Fg(color::LightBlack),
+                '-',
+                color::Fg(color::Reset)
+            );
             artist.buffer.write_composed(x, y, s)
         }
     }
