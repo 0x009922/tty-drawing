@@ -1,56 +1,76 @@
+mod components;
+mod core;
 mod rendering;
+
+use rand::prelude::ThreadRng;
+
+use crate::core::{Art, Tick};
+use components::{fog::FogLine, radiation_wing::RadiationWing};
+use rendering::*;
+
+use std::f32::consts::PI;
 use std::thread;
 use std::time::Duration;
-use rendering::composition::{Image, ImageAtom};
+
+const TICK_MS: u64 = 50;
 
 fn main() {
-  // упростим задачу - сделаю одну структуру, в которой есть одно обновляющееся изображение
-  // буду постоянно тикать и давать ей возможность обновляться, а потом заимствовать её композицию
-  // и отдавать на рендер
+    // тред для генерации рандомного тумана
+    let mut rng = rand::thread_rng();
 
-  let mut renderer = rendering::TerminalRenderer::new();
+    let mut artist = TerminalArtist::new();
 
-  let mut img = Img::new(5);
-  let interval = Duration::from_millis(100);
+    // линии
+    let mut fog_lines = generate_fog_lines(&mut rng, &artist.resolution);
 
-  loop {
-    img.tick();
-    renderer.render(&img.image);
-    thread::sleep(interval);
-  }
+    // крылья
+    let mut wings: [RadiationWing; 3] = [
+        RadiationWing::new(rad_wing_start_angle(0.0), &artist.resolution),
+        RadiationWing::new(rad_wing_start_angle(1.0), &artist.resolution),
+        RadiationWing::new(rad_wing_start_angle(2.0), &artist.resolution),
+    ];
+
+    let ms_duration = Duration::from_millis(TICK_MS);
+
+    loop {
+        // чистка буфера для начала
+        artist.buffer.clear();
+
+        let delta_ms = TICK_MS as u32;
+
+        // тик и прорисовка линий
+        for line in fog_lines.iter_mut() {
+            line.tick(delta_ms);
+            line.draw(&mut artist);
+        }
+
+        // тик и прорисовка крыльев
+        for wing in wings.iter_mut() {
+            wing.tick(delta_ms);
+            wing.draw(&mut artist);
+        }
+
+        // рендеринг буффера в терминале
+        artist.render();
+
+        // ожидание следующего тика
+        // TODO замерять, сколько времени ушло на последний цикл, и спать меньше с учётом этого
+        thread::sleep(ms_duration);
+    }
 }
 
-struct Img {
-  counter: usize,
-  image: Image,
-  size: usize
+fn rad_wing_start_angle(index: f32) -> f32 {
+    index * 2.0 * PI / 3.0
 }
 
-impl Img {
-  fn new(size: usize) -> Img {
-    let img_data: Vec<ImageAtom> = (0..size).into_iter().map(|_| ImageAtom(None)).collect();
+/**
+ * Генерация линий тумана
+ */
+fn generate_fog_lines(rng: &mut ThreadRng, res: &TerminalResolution) -> Vec<FogLine> {
+    const COUNT: u32 = 50;
 
-    Img {
-      counter: 0,
-      size,
-      image: Image {
-        x: 5,
-        y: 5,
-        lines: vec![img_data]
-      }
-    }
-  }
-
-  fn tick(&mut self) {
-    self.counter += 1;
-    self.counter %= self.size;
-    self.update_image();
-  }
-
-  fn update_image(&mut self) {
-    for i in 0..self.size {
-      let val: Option<char> = if self.counter == i { Some('_') } else { None };
-      self.image.lines[0][i] = ImageAtom(val);
-    }
-  }
+    let (rows, cols) = res.get_rows_cols();
+    (0..COUNT)
+        .map(|_| FogLine::new_random(rows, cols, rng))
+        .collect()
 }
