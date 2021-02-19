@@ -1,9 +1,8 @@
 use std::f64::consts::PI;
 
 use crate::vg::{
-    draw_arc_with_bold_size, draw_line_with_bold_side, fill_canvas,
-    vectors::{PolarVec, Vector2},
-    ArcBoldMode, Canvas,
+    draw_arc_with_bold_size, draw_line_with_bold_side, fill_canvas, vectors::Vector2, ArcBoldMode,
+    Canvas,
 };
 
 /// Радиационный знак!
@@ -99,7 +98,7 @@ fn draw_rad_part(
     draw_line_with_bold_side(canv, &vert_es, &vert_ee, &wing_center);
 
     // залить
-    // WIP
+    fill_canvas(canv, (wing_center.x as i32, wing_center.y as i32), 255);
 }
 
 // trait Yahoo {

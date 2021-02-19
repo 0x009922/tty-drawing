@@ -153,8 +153,25 @@ pub fn draw_line_with_bold_side<T: Canvas>(
 }
 
 /// заливка канваса, начиная с точки
-pub fn fill_canvas<T>(canv: &mut T, origin: &Vector2, value: u8)
+pub fn fill_canvas<T>(canv: &mut T, (x, y): (i32, i32), value: u8)
 where
     T: Canvas,
 {
+    if let Some(current) = canv.get_px(x, y) {
+        fill_canv_recursive(canv, (x, y), value, current);
+    }
+}
+
+fn fill_canv_recursive(canv: &mut impl Canvas, (x, y): (i32, i32), value: u8, replace: u8) {
+    // подменяю под собой
+    canv.put_px(x, y, value);
+
+    // подменяю всех соседей, у которых пиксель - current
+    for (x, y) in [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)].iter() {
+        if let Some(neighbour_curr) = canv.get_px(*x, *y) {
+            if neighbour_curr == replace {
+                fill_canv_recursive(canv, (*x, *y), value, replace)
+            }
+        }
+    }
 }
