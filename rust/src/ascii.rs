@@ -62,7 +62,8 @@ pub fn num_to_char(num: u8) -> char {
 
         // println!("shift from {} to {}", num, code_shift);
 
-        char::from_u32(CODE_START + code_shift as u32 - 1).unwrap()
+        // char::from_u32(CODE_START + code_shift as u32 - 1).unwrap()
+        ' '
 
         // let code_shift =
         // ' '
