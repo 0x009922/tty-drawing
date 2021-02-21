@@ -18,6 +18,11 @@ const PART_ANGLE: f64 = 2.0 * PI / 3.0 * 0.5;
 /// Скорость вращения. Угол в радианах в секунду
 const ROTATION_SPEED: f64 = 1.0;
 
+// const SYMBOLS: [char; 8] = ['▁', '▂', '▃', '▄', '▅', '▆', '▇', '█'];
+// const SYMBOLS: [char; 4] = ['░', '▒', '▓', '█'];
+const SYMBOLS: [char; 5] = ['-', '•', '*', '#', '%'];
+// ░ ▒ ▓
+
 /// Радиационный знак!
 pub struct RadSign {
     resizer: Resizer<Gray<u8, u8>>,
@@ -113,20 +118,35 @@ impl Art for RadSign {
     fn draw(&self, artist: &mut TerminalArtist) {
         // изливаю на артиста то, что у меня подготовлено в resize_buffer
         for (value, (x, y)) in self.resize_buff.get_iter() {
-            // пока без детализации
-            if value > 0 {
-                let chr: char = if value < 100 {
-                    '.'
-                } else if value < 200 {
-                    '+'
-                } else if value < 255 {
-                    '='
-                } else {
-                    '#'
-                };
+            if let Some(chr) = char_by_value(value) {
                 artist.buffer.write(x + self.res.columns / 4, y, chr);
+                //                    ^ это потому, что картинка ужата в два раза по оси OX
             }
+
+            // // пока без детализации
+            // if value > 0 {
+            //     let chr: char = if value < 100 {
+            //         '.'
+            //     } else if value < 200 {
+            //         '+'
+            //     } else if value < 255 {
+            //         '='
+            //     } else {
+            //         '#'
+            //     };
+            //     artist.buffer.write(x + self.res.columns / 4, y, chr);
+            // }
         }
+    }
+}
+
+fn char_by_value(val: u8) -> Option<char> {
+    if val > 0 {
+        // делаю число относительным к 8, а не к 255
+        let val_rel = (val as usize) * SYMBOLS.len() / 256;
+        Some(SYMBOLS[val_rel as usize])
+    } else {
+        None
     }
 }
 
