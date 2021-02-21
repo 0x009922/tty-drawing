@@ -1,5 +1,5 @@
 [package]
-name = "rust"
+name = "tty"
 version = "0.1.0"
 authors = ["Liquid <a.marcius26@gmail.com>"]
 edition = "2018"
@@ -9,3 +9,6 @@ edition = "2018"
 [dependencies]
 termion = "1.5.5"
 rand = "0.7.3"
+rustbitmap = "0.1.0"
+line_drawing = "0.8.0"
+resize = "0.6.2"

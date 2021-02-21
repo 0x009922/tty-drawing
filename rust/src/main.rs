@@ -1,76 +1,111 @@
-mod components;
-mod core;
+// mod bitmap;
+mod arts;
+mod buffer;
 mod rendering;
+mod tick;
+mod vg;
 
-use rand::prelude::ThreadRng;
+use arts::{fog::FogLine, rad_sign::RadSign};
+use rendering::{Art, TerminalArtist, TerminalResolution};
 
-use crate::core::{Art, Tick};
-use components::{fog::FogLine, radiation_wing::RadiationWing};
-use rendering::*;
-
-use std::f32::consts::PI;
-use std::thread;
-use std::time::Duration;
-
-const TICK_MS: u64 = 50;
+const TICK_TIME: u64 = 16;
 
 fn main() {
-    // тред для генерации рандомного тумана
-    let mut rng = rand::thread_rng();
+    let mut main_scene = MainScene::new();
+    tick::run_tick_loop(TICK_TIME, &mut main_scene);
 
-    let mut artist = TerminalArtist::new();
+    // // создаю буфферок
+    // let mut cb = buffer::Buffer2D::<u8>::new(500, 500, 0);
+    // // создаю знак
+    // let sign = rad_sign::RadSignState::new(0.0, 100.0, Vector2::new(250.0, 250.0));
+    // // рисую
+    // sign.draw_on_canvas(&mut cb);
+    // // сохраняю
+    // bitmap::save_buff(&cb, "test.bmp");
 
-    // линии
-    let mut fog_lines = generate_fog_lines(&mut rng, &artist.resolution);
+    // // ресампл
+    // let mut cb_small = buffer::Buffer2D::<u8>::new(167, 39, 0);
+    // let mut resizer = resize::Resizer::new(
+    //     cb.width,
+    //     cb.height,
+    //     cb_small.width,
+    //     cb_small.height,
+    //     resize::Pixel::Gray8,
+    //     resize::Type::Catrom,
+    // )
+    // .unwrap();
 
-    // крылья
-    let mut wings: [RadiationWing; 3] = [
-        RadiationWing::new(rad_wing_start_angle(0.0), &artist.resolution),
-        RadiationWing::new(rad_wing_start_angle(1.0), &artist.resolution),
-        RadiationWing::new(rad_wing_start_angle(2.0), &artist.resolution),
-    ];
+    // resizer.resize(&cb.buff, &mut cb_small.buff).unwrap();
 
-    let ms_duration = Duration::from_millis(TICK_MS);
+    // // let v: Vec<_> = cb_small.get_iter().collect();
+    // // println!("{:?}", v);
+    // for i in cb_small.get_iter() {
+    //     if (i.0 != 0) {
+    //         println!("{:?}", i)
+    //     }
+    // }
 
-    loop {
-        // чистка буфера для начала
-        artist.buffer.clear();
+    // // сохраняю новое
+    // bitmap::save_buff(&cb_small, "test_small.bmp");
 
-        let delta_ms = TICK_MS as u32;
+    // // а теперь порисую на экране
 
-        // тик и прорисовка линий
-        for line in fog_lines.iter_mut() {
-            line.tick(delta_ms);
-            line.draw(&mut artist);
-        }
+    // let mut artist = rendering::TerminalArtist::new(&resolution);
+    // for x in 0..cb_small.width {
+    //     for y in 0..cb_small.height {
+    //         let px = cb_small.get_px(x as i32, y as i32);
+    //         let px_char: char = match px {
+    //             Some(px_value) => {
+    //                 let norm = (px_value as f64 / 256.0) * 10.0;
+    //                 let norm_str = (norm as u32).to_string().as_bytes()[0] as char;
+    //                 norm_str
+    //             }
+    //             None => ' ',
+    //         };
+    //         artist.buffer.write(x, y, px_char);
+    //     }
+    // }
+    // artist.render();
+}
 
-        // тик и прорисовка крыльев
-        for wing in wings.iter_mut() {
-            wing.tick(delta_ms);
-            wing.draw(&mut artist);
-        }
+struct MainScene {
+    artist: TerminalArtist,
+    fog: Vec<FogLine>,
+    rad: RadSign,
+}
 
-        // рендеринг буффера в терминале
-        artist.render();
+impl MainScene {
+    fn new() -> Self {
+        let mut rng = rand::thread_rng();
+        let res = TerminalResolution::from_actual_terminal_size();
+        let artist = TerminalArtist::new(res);
 
-        // ожидание следующего тика
-        // TODO замерять, сколько времени ушло на последний цикл, и спать меньше с учётом этого
-        thread::sleep(ms_duration);
+        // туман
+        let fog = FogLine::generate_fog_lines(&mut rng, res.rows, res.columns, 100);
+
+        // знак
+        let rad = RadSign::new(0.5, res);
+
+        Self { artist, fog, rad }
     }
 }
 
-fn rad_wing_start_angle(index: f32) -> f32 {
-    index * 2.0 * PI / 3.0
-}
+impl tick::Tick for MainScene {
+    fn tick(&mut self, ms: u64) {
+        // чистка буфера для начала
+        self.artist.buffer.clear();
 
-/**
- * Генерация линий тумана
- */
-fn generate_fog_lines(rng: &mut ThreadRng, res: &TerminalResolution) -> Vec<FogLine> {
-    const COUNT: u32 = 50;
+        // тик и прорисовка линий
+        for line in self.fog.iter_mut() {
+            line.tick(ms);
+            line.draw(&mut self.artist);
+        }
 
-    let (rows, cols) = res.get_rows_cols();
-    (0..COUNT)
-        .map(|_| FogLine::new_random(rows, cols, rng))
-        .collect()
+        // тик и прорисовка знака
+        self.rad.tick(ms);
+        self.rad.draw(&mut self.artist);
+
+        // рендеринг буффера в терминале
+        self.artist.render();
+    }
 }
