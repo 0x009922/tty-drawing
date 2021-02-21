@@ -2,7 +2,12 @@ use crate::buffer::Buffer2D;
 use std::io::{self, Write};
 use termion::cursor;
 
+pub trait Art {
+    fn draw(&self, artist: &mut TerminalArtist);
+}
+
 /// Разрешение терминала - сколько строчек и колонок в нём
+#[derive(Clone, Copy, Debug)]
 pub struct TerminalResolution {
     pub rows: usize,
     pub columns: usize,
@@ -121,15 +126,15 @@ impl ArtBuffer {
 }
 
 /// Рисовальщик в терминале
-pub struct TerminalArtist<'a> {
+pub struct TerminalArtist {
     was_first_render: bool,
-    pub resolution: &'a TerminalResolution,
+    pub resolution: TerminalResolution,
     pub buffer: ArtBuffer,
 }
 
-impl<'a> TerminalArtist<'a> {
+impl TerminalArtist {
     /// инициализация
-    pub fn new(resolution: &'a TerminalResolution) -> Self {
+    pub fn new(resolution: TerminalResolution) -> Self {
         // let resolution = TerminalResolution::new();
         let buffer = ArtBuffer::new(&resolution);
         Self {

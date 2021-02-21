@@ -1,5 +1,6 @@
-use crate::core;
-use crate::rendering::TerminalArtist;
+use crate::tick::Tick;
+// use crate::
+use crate::rendering::{Art, TerminalArtist, TerminalResolution};
 use rand::{prelude::ThreadRng, Rng};
 use termion::color;
 
@@ -7,7 +8,7 @@ use termion::color;
 const FOG_SPEED: (f32, f32) = (2.0, 10.0);
 
 // длина стрелочки тумана
-const FOG_LEN: (f32, f32) = (2.0, 5.0);
+const FOG_LEN: (f32, f32) = (3.0, 6.0);
 
 pub struct FogLine {
     // позиция горизонтально - плавающая
@@ -44,10 +45,21 @@ impl FogLine {
             length,
         }
     }
+
+    pub fn generate_fog_lines(
+        rng: &mut ThreadRng,
+        rows: usize,
+        cols: usize,
+        count: u32,
+    ) -> Vec<Self> {
+        (0..count)
+            .map(|_| Self::new_random(rows, cols, rng))
+            .collect()
+    }
 }
 
-impl core::Tick for FogLine {
-    fn tick(&mut self, ms: u32) {
+impl Tick for FogLine {
+    fn tick(&mut self, ms: u64) {
         // движение линии со своей скоростью в своём направлении
 
         let delta = (ms as f32) * 0.001 * self.speed;
@@ -65,7 +77,7 @@ impl core::Tick for FogLine {
     }
 }
 
-impl core::Art for FogLine {
+impl Art for FogLine {
     fn draw(&self, artist: &mut TerminalArtist) {
         // рисование линии в зависимости от её положения
 
@@ -75,13 +87,14 @@ impl core::Art for FogLine {
 
         for i in x_start..(x_end + 1) {
             let x = i % self.max_x as usize;
-            let s = format!(
-                "{}{}{}",
-                color::Fg(color::LightBlack),
-                '-',
-                color::Fg(color::Reset)
-            );
-            artist.buffer.write_composed(x, y, s)
+            artist.buffer.write(x, y, '-');
+            // let s = format!(
+            //     "{}{}{}",
+            //     color::Fg(color::LightBlack),
+            //     '-',
+            //     color::Fg(color::Reset)
+            // );
+            // artist.buffer.write_composed(x, y, s)
         }
     }
 }

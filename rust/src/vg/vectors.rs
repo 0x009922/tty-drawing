@@ -1,7 +1,7 @@
 use std::ops::Add;
 
 /// представление вектора в декартовой системе координат
-#[derive(Clone)]
+#[derive(Clone, Copy, Debug)]
 pub struct Vector2 {
     pub x: f64,
     pub y: f64,

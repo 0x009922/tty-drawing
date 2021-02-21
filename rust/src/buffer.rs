@@ -7,6 +7,26 @@ pub struct Buffer2D<T: Sized + Copy> {
     init_value: T,
 }
 
+pub struct Buffer2DIterator<'a, T: Sized + Copy> {
+    buff: &'a Buffer2D<T>,
+    current_offset: usize,
+}
+
+impl<'a, T: Sized + Copy> Iterator for Buffer2DIterator<'a, T> {
+    type Item = (T, (usize, usize));
+
+    fn next(&mut self) -> Option<(T, (usize, usize))> {
+        match self.buff.offset_to_coords(self.current_offset) {
+            Some(coords) => {
+                let value = self.buff.buff[self.current_offset];
+                self.current_offset += 1;
+                Some((value, coords))
+            }
+            None => None,
+        }
+    }
+}
+
 impl<T: Sized + Copy> Buffer2D<T> {
     pub fn new(width: usize, height: usize, init: T) -> Self {
         let buff: Vec<T> = vec![init; width * height];
@@ -16,6 +36,23 @@ impl<T: Sized + Copy> Buffer2D<T> {
             height,
             buff,
             init_value: init,
+        }
+    }
+
+    fn offset_to_coords(&self, offset: usize) -> Option<(usize, usize)> {
+        if offset < self.buff.len() {
+            let x: usize = offset % self.width;
+            let y: usize = offset / self.height;
+            Some((x, y))
+        } else {
+            None
+        }
+    }
+
+    pub fn get_iter<'a>(&'a self) -> Buffer2DIterator<'a, T> {
+        Buffer2DIterator {
+            buff: &self,
+            current_offset: 0,
         }
     }
 
@@ -46,7 +83,10 @@ impl<T: Sized + Copy> Buffer2D<T> {
             Some(x) => x,
             None => self.init_value,
         };
-        self.buff.iter_mut().map(|x| *x = val);
+        for x in self.buff.iter_mut() {
+            *x = val
+        }
+        // self.buff.iter_mut().map(|x| *x = val);
     }
 
     pub fn set_by_coords(&mut self, (x, y): (i32, i32), v: T) {
@@ -89,6 +129,14 @@ impl Canvas for Buffer2D<u8> {
         // }
     }
 }
+
+// impl<T: Sized + Copy> Iterator for Buffer2D<T> {
+//     type Item = T;
+
+//     fn next(&mut self) -> Option<T> {
+
+//     }
+// }
 
 // pub struct CanvasBuffer {
 //     pub width: usize,

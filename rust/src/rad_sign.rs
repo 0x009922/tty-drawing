@@ -1,16 +1,16 @@
 use std::f64::consts::PI;
+// use crate::core::{Tick, Art};
+use crate::buffer::Buffer2D;
+use crate::rendering::{Art, TerminalArtist, TerminalResolution};
+use crate::tick::Tick;
+use resize::{formats::Gray, Resizer};
+
+// Resizer::new()
 
 use crate::vg::{
     draw_arc_with_bold_size, draw_line_with_bold_side, fill_canvas, vectors::Vector2, ArcBoldMode,
     Canvas,
 };
-
-/// Радиационный знак!
-pub struct RadSign {
-    angle: f64,
-    center: Vector2,
-    radius: f64,
-}
 
 /// С какого предела начинается малый радиус (относительно)
 const RAD_START_REL: f64 = 0.2;
@@ -18,12 +18,29 @@ const RAD_START_REL: f64 = 0.2;
 /// какая угловая длина у одного крыла
 const PART_ANGLE: f64 = 2.0 * PI / 3.0 * 0.5;
 
-impl RadSign {
-    pub fn new(start_angle: f64, center: Vector2, radius: f64) -> Self {
+/// Скорость вращения. Угол в радианах в секунду
+const ROTATION_SPEED: f64 = 1.0;
+
+/// Радиационный знак!
+pub struct RadSign {
+    resizer: Resizer<Gray<u8, u8>>,
+    draw_buff: Buffer2D<u8>,
+    resize_buff: Buffer2D<u8>,
+    state: RadSignState,
+}
+
+pub struct RadSignState {
+    angle: f64,
+    center: Vector2,
+    radius: f64,
+}
+
+impl RadSignState {
+    pub fn new(angle: f64, radius: f64, center: Vector2) -> Self {
         Self {
-            angle: start_angle,
-            center,
+            angle,
             radius,
+            center,
         }
     }
 
@@ -43,6 +60,73 @@ impl RadSign {
                 a + PART_ANGLE,
             );
             a += DELTA_ANGLE;
+        }
+    }
+}
+
+impl RadSign {
+    /// инициализация
+    pub fn new(start_angle: f64, res: TerminalResolution) -> Self {
+        let draw_buff: Buffer2D<u8> = Buffer2D::new(500, 500, 0);
+        let resize_buff: Buffer2D<u8> = Buffer2D::new(res.columns, res.rows, 0);
+
+        println!("size {:?}", res);
+
+        let resizer = resize::Resizer::new(
+            draw_buff.width,
+            draw_buff.height,
+            resize_buff.width,
+            resize_buff.height,
+            resize::Pixel::Gray8,
+            resize::Type::Catrom,
+        )
+        .unwrap();
+
+        Self {
+            resizer,
+            draw_buff,
+            resize_buff,
+
+            state: RadSignState {
+                angle: start_angle,
+                center: Vector2::new(250.0, 200.0),
+                radius: 300.0,
+            },
+        }
+    }
+}
+
+impl Tick for RadSign {
+    fn tick(&mut self, ms: u64) {
+        // двигаю угол
+        self.state.angle += ms as f64 * 0.001 * ROTATION_SPEED;
+
+        // рисую в буффера
+        self.draw_buff.clear(None);
+        self.state.draw_on_canvas(&mut self.draw_buff);
+        self.resizer
+            .resize(&self.draw_buff.buff, &mut self.resize_buff.buff)
+            .unwrap();
+    }
+}
+
+impl Art for RadSign {
+    fn draw(&self, artist: &mut TerminalArtist) {
+        // изливаю на артиста то, что у меня подготовлено в resize_buffer
+        for (value, (x, y)) in self.resize_buff.get_iter() {
+            // пока без детализации
+            if value > 0 {
+                let chr: char = if value < 100 {
+                    '.'
+                } else if value < 200 {
+                    '+'
+                } else if value < 255 {
+                    '='
+                } else {
+                    '#'
+                };
+                artist.buffer.write(x, y, chr);
+            }
         }
     }
 }
@@ -98,7 +182,9 @@ fn draw_rad_part(
     draw_line_with_bold_side(canv, &vert_es, &vert_ee, &wing_center);
 
     // залить
+    // println!("filling... {:?}", wing_center);
     fill_canvas(canv, (wing_center.x as i32, wing_center.y as i32), 255);
+    // println!("filling done");
 }
 
 // trait Yahoo {
