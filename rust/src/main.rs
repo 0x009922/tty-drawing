@@ -1,23 +1,12 @@
-// mod ascii;
-mod bitmap;
+// mod bitmap;
+mod arts;
 mod buffer;
-mod components;
-// mod core;
 mod rendering;
-// mod scene;
-mod rad_sign;
 mod tick;
 mod vg;
 
-use components::fog::FogLine;
-use rad_sign::RadSign;
+use arts::{fog::FogLine, rad_sign::RadSign};
 use rendering::{Art, TerminalArtist, TerminalResolution};
-
-// use resize::Type::Lanczos3;
-// use resize::Pixel::Gray8;
-
-// use rand::prelude::ThreadRng;
-// use vg::{vectors::Vector2, Canvas};
 
 const TICK_TIME: u64 = 16;
 
