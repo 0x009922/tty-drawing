@@ -1,4 +1,5 @@
-use crate::vg::{buffer::CanvasBuffer, Canvas};
+use crate::buffer::Buffer2D;
+use crate::vg::Canvas;
 use rustbitmap::{BitMap, Rgba};
 
 // pub struct BitmapCanvas {
@@ -41,7 +42,7 @@ fn value_to_color(v: u8) -> Rgba {
     Rgba::rgba(255 - v, 255 - v, 255 - v, 255)
 }
 
-pub fn save_buff(buff: &CanvasBuffer, filename: &str) {
+pub fn save_buff(buff: &Buffer2D<u8>, filename: &str) {
     let mut bmp = BitMap::new(buff.width as u32, buff.height as u32);
     for x in 0..buff.width as i32 {
         for y in 0..buff.height as i32 {
