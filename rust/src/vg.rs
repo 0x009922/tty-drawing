@@ -14,7 +14,7 @@ pub trait Canvas {
     /// Вставка пикселя в канвас. Значение - от 0 до 255
     fn put_px(&mut self, x: i32, y: i32, v: u8);
 
-    /// Получение пикселя из канвы. Если пусто, то 0
+    /// Получение пикселя из канвы. Если находится за пределами, то None
     fn get_px(&self, x: i32, y: i32) -> Option<u8>;
 }
 
@@ -153,24 +153,71 @@ pub fn draw_line_with_bold_side<T: Canvas>(
 }
 
 /// заливка канваса, начиная с точки
-pub fn fill_canvas<T>(canv: &mut T, (x, y): (i32, i32), value: u8)
+pub fn fill_canvas<T>(canv: &mut T, (x, y): (i32, i32), new_color: u8)
 where
     T: Canvas,
 {
-    if let Some(current) = canv.get_px(x, y) {
-        fill_canv_recursive(canv, (x, y), value, current);
-    }
-}
+    if let Some(old_color) = canv.get_px(x, y) {
+        // TODO не создавать постоянно новый вектор. Сделать alloc только один раз!
+        let mut stack: Vec<(i32, i32)> = vec![(x, y)];
+        let mut span_left = false;
+        let mut span_right = false;
 
-fn fill_canv_recursive(canv: &mut impl Canvas, (x, y): (i32, i32), value: u8, replace: u8) {
-    // подменяю под собой
-    canv.put_px(x, y, value);
+        while stack.len() > 0 {
+            // Удаляю из стека верхушку
+            let point = stack.pop().unwrap();
 
-    // подменяю всех соседей, у которых пиксель - current
-    for (x, y) in [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)].iter() {
-        if let Some(neighbour_curr) = canv.get_px(*x, *y) {
-            if neighbour_curr == replace {
-                fill_canv_recursive(canv, (*x, *y), value, replace)
+            // println!("Point... {:?} ", point);
+
+            // Находим границу сверху
+            let (_, mut y1) = point;
+            loop {
+                // println!("Loop inner 1 {:?} {}", point, y1);
+                match canv.get_px(point.0, y1 - 1) {
+                    Some(px_col) if px_col == old_color => {
+                        y1 -= 1;
+                    }
+                    _ => break,
+                }
+            }
+
+            span_left = false;
+            span_right = false;
+            // Топаем по строке сверху вниз
+            loop {
+                // println!("Loop inner {:?} {}", point, y1);
+
+                match canv.get_px(point.0, y1) {
+                    Some(px) if px == old_color => {
+                        // закрашиваю
+                        // println!("Put px");
+                        canv.put_px(point.0, y1, new_color);
+
+                        // беру цвет точки слева
+                        let left_color = canv.get_px(point.0 - 1, y1);
+                        if !span_left && left_color == Some(old_color) {
+                            // нашёл новую точку - слева
+                            stack.push((point.0 - 1, y1));
+                            span_left = true;
+                        } else if span_left && left_color != Some(old_color) {
+                            span_left = false;
+                        }
+
+                        // беру цвет точки справа
+                        let right_color = canv.get_px(point.0 + 1, y1);
+                        if !span_right && right_color == Some(old_color) {
+                            // нашёл новую точку - слева
+                            stack.push((point.0 + 1, y1));
+                            span_right = true;
+                        } else if span_right && right_color != Some(old_color) {
+                            span_right = false;
+                        }
+
+                        // окей, иду дальше вниз
+                        y1 += 1;
+                    }
+                    _ => break,
+                }
             }
         }
     }
