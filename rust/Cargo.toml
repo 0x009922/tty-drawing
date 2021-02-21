@@ -1,5 +1,5 @@
 [package]
-name = "rust"
+name = "tty"
 version = "0.1.0"
 authors = ["Liquid <a.marcius26@gmail.com>"]
 edition = "2018"

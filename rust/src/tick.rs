@@ -6,13 +6,8 @@ pub trait Tick {
 }
 
 pub fn run_tick_loop(tick_time: u64, ticker: &mut impl Tick) {
-    // let tick_time_32 = tick_time as u32;
-    // let ms_duration = Duration::from_millis(delta);
-
     // для замеров того, сколько цикл занял времени
     let now = Instant::now();
-    // let mut last: u128 = 0;
-    // let delta_u32 = delta as u32;
 
     loop {
         // замеряю время до
@@ -29,15 +24,10 @@ pub fn run_tick_loop(tick_time: u64, ticker: &mut impl Tick) {
            нормализовываться в зависимости от затрат на каждый кадр
         */
 
+        // println!()
+
         if actual_delta < tick_time {
             thread::sleep(Duration::from_millis(tick_time - actual_delta));
         }
-
-        // let elapsed = now.elapsed().as_millis();
-        // let actual_delta = elapsed - last;
-        // last = elapsed;
-
-        // println!("actual_delta {}", actual_delta);
-        // thread::sleep(ms_duration);
     }
 }
