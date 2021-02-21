@@ -21,42 +21,42 @@ use vg::vectors::Vector2;
 // use vg::{vectors::Vector2, Canvas};
 
 fn main() {
-    // let mut main_scene = MainScene::new();
-    // tick::run_tick_loop(30, &mut main_scene);
+    let mut main_scene = MainScene::new();
+    tick::run_tick_loop(100, &mut main_scene);
 
-    // создаю буфферок
-    let mut cb = buffer::Buffer2D::<u8>::new(500, 500, 0);
-    // создаю знак
-    let sign = rad_sign::RadSignState::new(0.0, 100.0, Vector2::new(250.0, 250.0));
-    // рисую
-    sign.draw_on_canvas(&mut cb);
-    // сохраняю
-    bitmap::save_buff(&cb, "test.bmp");
+    // // создаю буфферок
+    // let mut cb = buffer::Buffer2D::<u8>::new(500, 500, 0);
+    // // создаю знак
+    // let sign = rad_sign::RadSignState::new(0.0, 100.0, Vector2::new(250.0, 250.0));
+    // // рисую
+    // sign.draw_on_canvas(&mut cb);
+    // // сохраняю
+    // bitmap::save_buff(&cb, "test.bmp");
 
-    // ресампл
-    let mut cb_small = buffer::Buffer2D::<u8>::new(167, 39, 0);
-    let mut resizer = resize::Resizer::new(
-        cb.width,
-        cb.height,
-        cb_small.width,
-        cb_small.height,
-        resize::Pixel::Gray8,
-        resize::Type::Catrom,
-    )
-    .unwrap();
+    // // ресампл
+    // let mut cb_small = buffer::Buffer2D::<u8>::new(167, 39, 0);
+    // let mut resizer = resize::Resizer::new(
+    //     cb.width,
+    //     cb.height,
+    //     cb_small.width,
+    //     cb_small.height,
+    //     resize::Pixel::Gray8,
+    //     resize::Type::Catrom,
+    // )
+    // .unwrap();
 
-    resizer.resize(&cb.buff, &mut cb_small.buff).unwrap();
+    // resizer.resize(&cb.buff, &mut cb_small.buff).unwrap();
 
-    // let v: Vec<_> = cb_small.get_iter().collect();
-    // println!("{:?}", v);
-    for i in cb_small.get_iter() {
-        if (i.0 != 0) {
-            println!("{:?}", i)
-        }
-    }
+    // // let v: Vec<_> = cb_small.get_iter().collect();
+    // // println!("{:?}", v);
+    // for i in cb_small.get_iter() {
+    //     if (i.0 != 0) {
+    //         println!("{:?}", i)
+    //     }
+    // }
 
-    // сохраняю новое
-    bitmap::save_buff(&cb_small, "test_small.bmp");
+    // // сохраняю новое
+    // bitmap::save_buff(&cb_small, "test_small.bmp");
 
     // // а теперь порисую на экране
 
@@ -126,7 +126,7 @@ impl tick::Tick for MainScene {
 
         // рендеринг буффера в терминале
         self.artist.render();
-        panic!()
+        // panic!()
 
         // self.num += 1;
     }

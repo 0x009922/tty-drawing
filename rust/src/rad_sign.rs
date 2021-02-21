@@ -1,11 +1,8 @@
-use std::f64::consts::PI;
-// use crate::core::{Tick, Art};
 use crate::buffer::Buffer2D;
 use crate::rendering::{Art, TerminalArtist, TerminalResolution};
 use crate::tick::Tick;
 use resize::{formats::Gray, Resizer};
-
-// Resizer::new()
+use std::f64::consts::PI;
 
 use crate::vg::{
     draw_arc_with_bold_size, draw_line_with_bold_side, fill_canvas, vectors::Vector2, ArcBoldMode,
@@ -27,6 +24,7 @@ pub struct RadSign {
     draw_buff: Buffer2D<u8>,
     resize_buff: Buffer2D<u8>,
     state: RadSignState,
+    res: TerminalResolution,
 }
 
 pub struct RadSignState {
@@ -68,7 +66,7 @@ impl RadSign {
     /// инициализация
     pub fn new(start_angle: f64, res: TerminalResolution) -> Self {
         let draw_buff: Buffer2D<u8> = Buffer2D::new(500, 500, 0);
-        let resize_buff: Buffer2D<u8> = Buffer2D::new(res.columns, res.rows, 0);
+        let resize_buff: Buffer2D<u8> = Buffer2D::new(res.columns / 2, res.rows, 0);
 
         println!("size {:?}", res);
 
@@ -86,11 +84,12 @@ impl RadSign {
             resizer,
             draw_buff,
             resize_buff,
+            res,
 
             state: RadSignState {
                 angle: start_angle,
-                center: Vector2::new(250.0, 200.0),
-                radius: 300.0,
+                center: Vector2::new(250.0, 250.0),
+                radius: 200.0,
             },
         }
     }
@@ -125,7 +124,7 @@ impl Art for RadSign {
                 } else {
                     '#'
                 };
-                artist.buffer.write(x, y, chr);
+                artist.buffer.write(x + self.res.columns / 4, y, chr);
             }
         }
     }
@@ -157,8 +156,6 @@ fn draw_rad_part(
         .move_to_middle_with(&vert_ee)
         .move_to_middle_with(&vert_es);
 
-    // let wing_center: Vector2 =
-
     // арки
     draw_arc_with_bold_size(
         canv,
@@ -182,17 +179,5 @@ fn draw_rad_part(
     draw_line_with_bold_side(canv, &vert_es, &vert_ee, &wing_center);
 
     // залить
-    // println!("filling... {:?}", wing_center);
     fill_canvas(canv, (wing_center.x as i32, wing_center.y as i32), 255);
-    // println!("filling done");
 }
-
-// trait Yahoo {
-//     fn yah(&self);
-// }
-
-// fn use_yahoo<T: Yahoo>(y: &T) {
-//     y.yah();
-
-//     use_yahoo(y);
-// }
