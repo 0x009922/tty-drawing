@@ -18,7 +18,7 @@ pub trait Canvas {
     fn get_px(&self, x: i32, y: i32) -> Option<u8>;
 }
 
-pub enum ArcBoldMode {
+pub enum BoldMode {
     Inner,
     Outer,
 }
@@ -31,7 +31,7 @@ pub fn draw_arc_with_bold_size<T: Canvas>(
     radius: f64,
     angle_start: f64,
     angle_step: f64,
-    mode: ArcBoldMode,
+    mode: BoldMode,
 ) {
     // буду рисовать круг линиями
 
@@ -79,8 +79,8 @@ pub fn draw_arc_with_bold_size<T: Canvas>(
             let dist = parallel.point_dist(&Vector2::new(x as f64, y as f64));
 
             let should_be_bold = match mode {
-                ArcBoldMode::Inner => dist < radius,
-                ArcBoldMode::Outer => dist > radius,
+                BoldMode::Inner => dist < radius,
+                BoldMode::Outer => dist > radius,
             };
 
             let value_fixed = if should_be_bold {
@@ -130,6 +130,7 @@ pub fn draw_line_with_bold_side<T: Canvas>(
     from: &Vector2,
     to: &Vector2,
     side_point: &Vector2,
+    mode: BoldMode,
 ) {
     let main_line = Line::from_two_points(from, to);
     let parallel = Line::from_parallel_line_and_point(&main_line, side_point);
@@ -139,10 +140,15 @@ pub fn draw_line_with_bold_side<T: Canvas>(
         // ищу расстояние от точки до прямой
         let dist = parallel.point_dist(&Vector2::new(x as f64, y as f64));
 
+        let should_be_bold = match mode {
+            BoldMode::Inner => dist < dist_to_side_point,
+            BoldMode::Outer => dist > dist_to_side_point,
+        };
+
         // если точка на расстоянии меньшем, чем радиус, то рисую прям чёрной
         // let dist = points_distance(&center, &(x as f64, y as f64));
         // println!("dist rad {} {}", dist, dist_to_side_point);
-        let value_outer: u8 = if dist < dist_to_side_point {
+        let value_outer: u8 = if should_be_bold {
             255
         } else {
             (value * 255.0) as u8
