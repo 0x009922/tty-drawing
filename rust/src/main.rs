@@ -12,7 +12,6 @@ mod vg;
 use components::fog::FogLine;
 use rad_sign::RadSign;
 use rendering::{Art, TerminalArtist, TerminalResolution};
-use vg::vectors::Vector2;
 
 // use resize::Type::Lanczos3;
 // use resize::Pixel::Gray8;
@@ -20,9 +19,11 @@ use vg::vectors::Vector2;
 // use rand::prelude::ThreadRng;
 // use vg::{vectors::Vector2, Canvas};
 
+const TICK_TIME: u64 = 16;
+
 fn main() {
     let mut main_scene = MainScene::new();
-    tick::run_tick_loop(100, &mut main_scene);
+    tick::run_tick_loop(TICK_TIME, &mut main_scene);
 
     // // создаю буфферок
     // let mut cb = buffer::Buffer2D::<u8>::new(500, 500, 0);
@@ -91,7 +92,7 @@ impl MainScene {
         let artist = TerminalArtist::new(res);
 
         // туман
-        let fog = FogLine::generate_fog_lines(&mut rng, res.rows, res.columns, 30);
+        let fog = FogLine::generate_fog_lines(&mut rng, res.rows, res.columns, 100);
 
         // знак
         let rad = RadSign::new(0.5, res);
@@ -102,7 +103,6 @@ impl MainScene {
 
 impl tick::Tick for MainScene {
     fn tick(&mut self, ms: u64) {
-        // println!("tick");
         // чистка буфера для начала
         self.artist.buffer.clear();
 
@@ -113,21 +113,10 @@ impl tick::Tick for MainScene {
         }
 
         // тик и прорисовка знака
-        // println!("and now rad");
         self.rad.tick(ms);
         self.rad.draw(&mut self.artist);
-        // println!("rad done")
-
-        // // тик и прорисовка крыльев
-        // for wing in wings.iter_mut() {
-        //     wing.tick(delta_ms);
-        //     wing.draw(&mut self.artist);
-        // }
 
         // рендеринг буффера в терминале
         self.artist.render();
-        // panic!()
-
-        // self.num += 1;
     }
 }

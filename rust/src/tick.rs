@@ -1,38 +1,43 @@
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 pub trait Tick {
     fn tick(&mut self, ms: u64);
 }
 
-pub fn run_tick_loop(delta: u64, ticker: &mut impl Tick) {
-    let ms_duration = Duration::from_millis(delta);
+pub fn run_tick_loop(tick_time: u64, ticker: &mut impl Tick) {
+    // let tick_time_32 = tick_time as u32;
+    // let ms_duration = Duration::from_millis(delta);
+
+    // для замеров того, сколько цикл занял времени
+    let now = Instant::now();
+    // let mut last: u128 = 0;
     // let delta_u32 = delta as u32;
 
     loop {
-        ticker.tick(delta);
-        // // чистка буфера для начала
-        // artist.buffer.clear();
+        // замеряю время до
+        let before = now.elapsed().as_millis();
 
-        // let delta_ms = TICK_MS as u32;
+        ticker.tick(tick_time);
 
-        // // тик и прорисовка линий
-        // for line in fog_lines.iter_mut() {
-        //     line.tick(delta_ms);
-        //     line.draw(&mut artist);
-        // }
+        // получаю, сколько времени ушло на тик
+        let actual_delta = (now.elapsed().as_millis() - before) as u64;
 
-        // // тик и прорисовка крыльев
-        // for wing in wings.iter_mut() {
-        //     wing.tick(delta_ms);
-        //     wing.draw(&mut artist);
-        // }
+        /* Если время оказалось больше отданной мне длительности,
+           то не жду совсем. Если меньше, то вычесть потраченное время
+           и подождать столько, сколько ещё можно подождать. Так FPS будет
+           нормализовываться в зависимости от затрат на каждый кадр
+        */
 
-        // // рендеринг буффера в терминале
-        // artist.render();
+        if actual_delta < tick_time {
+            thread::sleep(Duration::from_millis(tick_time - actual_delta));
+        }
 
-        // ожидание следующего тика
-        // TODO замерять, сколько времени ушло на последний цикл, и спать меньше с учётом этого
-        thread::sleep(ms_duration);
+        // let elapsed = now.elapsed().as_millis();
+        // let actual_delta = elapsed - last;
+        // last = elapsed;
+
+        // println!("actual_delta {}", actual_delta);
+        // thread::sleep(ms_duration);
     }
 }
