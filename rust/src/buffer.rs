@@ -42,7 +42,7 @@ impl<T: Sized + Copy> Buffer2D<T> {
     fn offset_to_coords(&self, offset: usize) -> Option<(usize, usize)> {
         if offset < self.buff.len() {
             let x: usize = offset % self.width;
-            let y: usize = offset / self.height;
+            let y: usize = offset / self.width;
             Some((x, y))
         } else {
             None
@@ -188,3 +188,45 @@ impl Canvas for Buffer2D<u8> {
 //         }
 //     }
 // }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn buffer_offset_to_coords_fine_in_square() {
+        let buff = Buffer2D::new(5, 5, 0);
+        assert_eq!(buff.offset_to_coords(7), Some((2, 1)));
+    }
+
+    #[test]
+    fn buffer_offset_to_coords_fine_in_not_square() {
+        let buff = Buffer2D::new(5, 4, 0);
+        assert_eq!(buff.offset_to_coords(15), Some((0, 3)));
+    }
+
+    #[test]
+    fn buffer_offset_to_coords_edge() {
+        let buff = Buffer2D::new(3, 2, 0);
+        assert_eq!(buff.offset_to_coords(2), Some((2, 0)));
+    }
+
+    #[test]
+    fn buffer_iterator_works_correctly() {
+        // создаю небольшой буффер и наполняю
+        let mut buff = Buffer2D::new(3, 2, 0);
+        buff.set_by_coords((1, 0), 4);
+        buff.set_by_coords((1, 1), 3);
+        buff.set_by_coords((0, 1), 9);
+
+        // проверяю, что отдаёт итератор
+        let mut iterator = buff.get_iter();
+        assert_eq!(iterator.next(), Some((0, (0, 0))));
+        assert_eq!(iterator.next(), Some((4, (1, 0))));
+        assert_eq!(iterator.next(), Some((0, (2, 0))));
+        assert_eq!(iterator.next(), Some((9, (0, 1))));
+        assert_eq!(iterator.next(), Some((3, (1, 1))));
+        assert_eq!(iterator.next(), Some((0, (2, 1))));
+        assert_eq!(iterator.next(), None);
+    }
+}
