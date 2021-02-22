@@ -4,7 +4,11 @@
 cargo run --release
 ```
 
-TODO:
+### TODO
 
 - [ ] optimize
-- [ ] record a `gif`
+
+### Preview
+
+![mp4 preview](rust-tty.mp4)
+
