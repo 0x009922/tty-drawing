@@ -1,3 +1,3 @@
 # tty-drawing
 
-Репозиторий с реализацией рисования всякого в терминале на разных ЯП.
+Graphical animation experiments in terminal implemented in different languages.
